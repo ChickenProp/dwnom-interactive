@@ -17,12 +17,25 @@ function rcps () {
     }
 }
 
+var parties = {
+    100: { name: 'Democrat', color: '#0000FF' },
+    200: { name: 'Republican', color: '#FF0000' },
+    default: { name: 'Other', color: '#00FF00' }
+};
+function getParty(id) {
+    return parties[id] || parties.default;
+}
+
+function getTitle(d) {
+    return d.name + ' - ' + getParty(d.party).name + ' - ' + d.dim1;
+}
+
 var data;
 function render (data_) {
     data = data_; // Putting it in a global variable helps with debugging.
 
     var margin = 75;
-    var width = 700 - 2*margin;
+    var width = 1200 - 2*margin;
     var height = 1200 - 2*margin;
 
     var svg = d3.select('svg')
@@ -56,9 +69,9 @@ function render (data_) {
         .append('circle')
         .attr('cx', rcps('dim1', scale_x))
         .attr('cy', rcps('year', scale_y))
-        .attr('r', 5)
-        .attr('fill', 'green')
-        .attr('title', rcps('name'));
+        .attr('r', 1)
+        .attr('fill', rcps('party', getParty, 'color'))
+        .attr('title', getTitle);
 
 }
 
