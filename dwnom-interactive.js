@@ -41,27 +41,30 @@ function render (data_) {
     var svg = d3.select('svg')
         .attr('width', width + 2*margin)
         .attr('height', height + 2*margin)
+      .append('g') // transform on svg doesn't work in chrome?
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
     var main_graph = svg.append('g');
 
-    var scale_x = d3.scale.linear()
+    var scale_x = d3.scale.margin()
         .range([0, width])
+        .margin([5, 0])
         .domain(d3.extent(data, rcps('dim1')));
-    var scale_y = d3.scale.linear()
+    var scale_y = d3.scale.margin()
         .range([0, height])
+        .margin([5, 0])
         .domain(d3.extent(data, rcps('year')));
 
     var axis_x = d3.svg.axis()
         .scale(scale_x)
         .orient('top');
-    svg.append('g').call(axis_x);
+    svg.append('g').attr('class', 'axis').call(axis_x);
 
     var axis_y = d3.svg.axis()
         .scale(scale_y)
         .orient('left')
         .tickFormat(d3.format(''));
-    svg.append('g').call(axis_y);
+    svg.append('g').attr('class', 'axis').call(axis_y);
 
     main_graph.selectAll('circle')
         .data(data)
