@@ -98,8 +98,7 @@ function render (data_) {
               .enter()
                 .append('path')
                 .attr('d', line)
-                .style('stroke', rcps(0, 'party', getParty, 'lColor'))
-                .style('fill', 'none');
+                .style('stroke', rcps(0, 'party', getParty, 'lColor'));
         });
 
     main_graph.selectAll('circle')
