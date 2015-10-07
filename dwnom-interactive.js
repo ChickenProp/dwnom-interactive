@@ -18,9 +18,9 @@ function rcps () {
 }
 
 var parties = {
-    100: { name: 'Democrat', color: '#0000FF' },
-    200: { name: 'Republican', color: '#FF0000' },
-    default: { name: 'Other', color: '#00FF00' }
+    100: { name: 'Democrat', pColor: '#0000FF', lColor: '#8080FF' },
+    200: { name: 'Republican', pColor: '#FF0000', lColor: '#FF8080' },
+    default: { name: 'Other', pColor: '#00FF00', lColor: '#80FF80' }
 };
 function getParty(id) {
     return parties[id] || parties.default;
@@ -30,9 +30,11 @@ function getTitle(d) {
     return d.name + ' - ' + getParty(d.party).name + ' - ' + d.dim1;
 }
 
+// Make some variables global to help with debugging.
 var data;
+var data_icpsr;
 function render (data_) {
-    data = data_; // Putting it in a global variable helps with debugging.
+    data = data_;
 
     var margin = 75;
     var width = 1200 - 2*margin;
@@ -66,6 +68,40 @@ function render (data_) {
         .tickFormat(d3.format(''));
     svg.append('g').attr('class', 'axis').call(axis_y);
 
+    data_icpsr = d3.nest()
+        .key(rcps('icpsr'))
+        .rollup(function (values) {
+            var ret = [];
+            for (var i = 0; i < values.length - 1; i++) {
+                ret.push([ values[i], values[i+1] ]);
+            }
+            return ret;
+        })
+        .entries(data);
+
+    var line = d3.svg.line()
+        .x(rcps('dim1', scale_x))
+        .y(rcps('year', scale_y));
+
+    main_graph.selectAll('g.path')
+        .data(data_icpsr)
+      .enter()
+        .append('g')
+        .attr('class', 'path')
+        .each(function (d) {
+            if (d.values.length == 0)
+                return;
+
+            d3.select(this)
+                .selectAll('path')
+                .data(d.values)
+              .enter()
+                .append('path')
+                .attr('d', line)
+                .style('stroke', rcps(0, 'party', getParty, 'lColor'))
+                .style('fill', 'none');
+        });
+
     main_graph.selectAll('circle')
         .data(data)
       .enter()
@@ -73,7 +109,7 @@ function render (data_) {
         .attr('cx', rcps('dim1', scale_x))
         .attr('cy', rcps('year', scale_y))
         .attr('r', 1)
-        .attr('fill', rcps('party', getParty, 'color'))
+        .attr('fill', rcps('party', getParty, 'pColor'))
         .attr('title', getTitle);
 
 }
