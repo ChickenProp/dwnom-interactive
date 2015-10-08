@@ -81,7 +81,7 @@ function render (data_) {
 
     var line = d3.svg.line()
         .x(rcps('dim1', scale_x))
-        .y(rcps('year', scale_y));
+        .y(rcps('year_jitter', scale_y));
 
     main_graph.selectAll('g.path')
         .data(data_icpsr)
@@ -106,7 +106,7 @@ function render (data_) {
       .enter()
         .append('circle')
         .attr('cx', rcps('dim1', scale_x))
-        .attr('cy', rcps('year', scale_y))
+        .attr('cy', rcps('year_jitter', scale_y))
         .attr('r', 1)
         .attr('fill', rcps('party', getParty, 'pColor'))
         .attr('title', getTitle);
@@ -115,6 +115,8 @@ function render (data_) {
 
 function transform (row) {
     row.dim1 = +row.dim1;
+    // Add some vertical jitter to reduce overplotting.
+    row.year_jitter = +row.year + Math.random() - 0.5;
     return row;
 }
 
