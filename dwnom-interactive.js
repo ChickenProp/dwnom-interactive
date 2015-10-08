@@ -36,15 +36,15 @@ var data_icpsr;
 function render (data_) {
     data = data_;
 
-    var margin = 75;
-    var width = 1200 - 2*margin;
-    var height = 1200 - 2*margin;
+    var margin = { left: 75, right: 30, top: 50, bottom: 30 };
+    var width = 1200 - margin.left - margin.right;
+    var height = 1200 - margin.top - margin.bottom;
 
     var svg = d3.select('svg')
-        .attr('width', width + 2*margin)
-        .attr('height', height + 2*margin)
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
       .append('g') // transform on svg doesn't work in chrome?
-        .attr('transform', 'translate(' + margin + ',' + margin + ')');
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     var main_graph = svg.append('g');
 
