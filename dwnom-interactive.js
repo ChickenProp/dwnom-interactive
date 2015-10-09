@@ -84,18 +84,21 @@ function render (data_) {
     data_year = d3.nest()
         .key(rcps('year'))
         .rollup(function (values) {
-            function filter_party(values, name) {
+            function dim1s(name) {
                 return values.filter(function (v) {
                     return getParty(v.party).name == name;
-                });
+                }).map(rcps('dim1')).sort(function (a, b) { return a-b; });
             }
-            function mean_dim1 (values) {
-                return d3.mean(values, rcps('dim1'));
-            }
+            var D_dim1s = dim1s('Democrat');
+            var R_dim1s = dim1s('Republican');
 
-            return { R: mean_dim1(filter_party(values, 'Republican')),
-                     D: mean_dim1(filter_party(values, 'Democrat')),
-                     overall: mean_dim1(values) };
+            return { R: d3.mean(R_dim1s),
+                     D: d3.mean(D_dim1s),
+                     Dmin: d3.quantile(D_dim1s, 0.1),
+                     Dmax: d3.quantile(D_dim1s, 0.9),
+                     Rmin: d3.quantile(R_dim1s, 0.1),
+                     Rmax: d3.quantile(R_dim1s, 0.9),
+                     overall: d3.mean(values, rcps('dim1')) };
         })
         .entries(data);
 
@@ -103,6 +106,26 @@ function render (data_) {
         .x(rcps('dim1', scale_x))
         .y(rcps('year_jitter', scale_y))
         .defined(function (d) { return d.dim1 !== undefined; });
+
+    var area = d3.svg.area()
+        .y(rcps(0, scale_y))
+        .x0(rcps(1, scale_x))
+        .x1(rcps(2, scale_x))
+        .defined(function (d) { return !isNaN(+d[0] + d[1] + d[2]); });
+
+    main_graph.append('path')
+        .attr('fill', 'blue')
+        .attr('fill-opacity', 0.3)
+        .attr('d', area(data_year.map(function (d) {
+            return [ d.key, d.values.Dmin, d.values.Dmax ];
+        })));
+
+    main_graph.append('path')
+        .attr('fill', 'red')
+        .attr('fill-opacity', 0.3)
+        .attr('d', area(data_year.map(function (d) {
+            return [ d.key, d.values.Rmin, d.values.Rmax ];
+        })));
 
     main_graph.selectAll('g.path')
         .data(data_icpsr)
