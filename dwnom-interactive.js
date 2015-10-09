@@ -33,6 +33,8 @@ function getTitle(d) {
 // Make some variables global to help with debugging.
 var data;
 var data_icpsr;
+var data_year;
+
 function render (data_) {
     data = data_;
 
@@ -79,9 +81,28 @@ function render (data_) {
         })
         .entries(data);
 
+    data_year = d3.nest()
+        .key(rcps('year'))
+        .rollup(function (values) {
+            function filter_party(values, name) {
+                return values.filter(function (v) {
+                    return getParty(v.party).name == name;
+                });
+            }
+            function mean_dim1 (values) {
+                return d3.mean(values, rcps('dim1'));
+            }
+
+            return { R: mean_dim1(filter_party(values, 'Republican')),
+                     D: mean_dim1(filter_party(values, 'Democrat')),
+                     overall: mean_dim1(values) };
+        })
+        .entries(data);
+
     var line = d3.svg.line()
         .x(rcps('dim1', scale_x))
-        .y(rcps('year_jitter', scale_y));
+        .y(rcps('year_jitter', scale_y))
+        .defined(function (d) { return d.dim1 !== undefined; });
 
     main_graph.selectAll('g.path')
         .data(data_icpsr)
@@ -111,6 +132,27 @@ function render (data_) {
         .attr('fill', rcps('party', getParty, 'pColor'))
         .attr('title', getTitle);
 
+    function draw_aggregate(key, color) {
+        var g = main_graph.append('g');
+        g.append('path')
+            .attr('d', line(data_year.map(function (d) {
+                return {'dim1': d.values[key], 'year_jitter': d.key};
+            })))
+            .attr('fill', 'none')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 2);
+        g.append('path')
+            .attr('d', line(data_year.map(function (d) {
+                return {'dim1': d.values[key], 'year_jitter': d.key};
+            })))
+            .attr('fill', 'none')
+            .attr('stroke', color)
+            .attr('stroke-width', 1);
+    }
+
+    draw_aggregate('overall', 'black');
+    draw_aggregate('D', 'blue');
+    draw_aggregate('R', 'red');
 }
 
 function transform (row) {
