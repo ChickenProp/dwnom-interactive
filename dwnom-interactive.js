@@ -35,6 +35,28 @@ var data;
 var data_icpsr;
 var data_year;
 
+function add_axes (parent, scale_x, scale_y) {
+    var axis_x = d3.svg.axis()
+        .scale(scale_x)
+        .orient('top');
+
+    var axis_y = d3.svg.axis()
+        .scale(scale_y)
+        .orient('left')
+        .tickFormat(d3.format(''));
+
+    var axis_y2 = d3.svg.axis()
+        .scale(scale_y)
+        .orient('left')
+        .innerTickSize(-scale_x.range()[1])
+        .ticks(100) // this gives 1 per 2 years, but ew hard coded.
+        .tickFormat(function () { return ''; });
+
+    parent.append('g').attr('class', 'axis-inner').call(axis_y2);
+    parent.append('g').attr('class', 'axis').call(axis_y);
+    parent.append('g').attr('class', 'axis').call(axis_x);
+}
+
 function render (data_) {
     data = data_;
 
@@ -48,8 +70,6 @@ function render (data_) {
       .append('g') // transform on svg doesn't work in chrome?
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    var main_graph = svg.append('g');
-
     var scale_x = d3.scale.margin()
         .range([0, width])
         .margin([5, 0])
@@ -59,16 +79,10 @@ function render (data_) {
         .margin([5, 0])
         .domain(d3.extent(data, rcps('year')));
 
-    var axis_x = d3.svg.axis()
-        .scale(scale_x)
-        .orient('top');
-    svg.append('g').attr('class', 'axis').call(axis_x);
+    var axes = svg.append('g').attr('id', 'axes');
+    var main_graph = svg.append('g').attr('id', 'main-graph');
 
-    var axis_y = d3.svg.axis()
-        .scale(scale_y)
-        .orient('left')
-        .tickFormat(d3.format(''));
-    svg.append('g').attr('class', 'axis').call(axis_y);
+    add_axes(axes, scale_x, scale_y);
 
     data_icpsr = d3.nest()
         .key(rcps('icpsr'))
