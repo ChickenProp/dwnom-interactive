@@ -45,11 +45,14 @@ function add_axes (parent, scale_x, scale_y) {
         .orient('left')
         .tickFormat(d3.format(''));
 
+    var y_extent = scale_y.domain();
+    var congress_breaks = _.range(y_extent[0]-1, y_extent[1]+2, 2);
+
     var axis_y2 = d3.svg.axis()
         .scale(scale_y)
         .orient('left')
         .innerTickSize(-scale_x.range()[1])
-        .ticks(100) // this gives 1 per 2 years, but ew hard coded.
+        .tickValues(congress_breaks)
         .tickFormat(function () { return ''; });
 
     parent.append('g').attr('class', 'axis-inner').call(axis_y2);
@@ -197,8 +200,9 @@ function render (data_) {
 
 function transform (row) {
     row.dim1 = +row.dim1;
+    row.year = +row.year;
     // Add some vertical jitter to reduce overplotting.
-    row.year_jitter = +row.year + Math.random() - 0.5;
+    row.year_jitter = row.year + Math.random() - 0.5;
     return row;
 }
 

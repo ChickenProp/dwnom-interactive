@@ -4,7 +4,7 @@ import sys
 import csv
 
 def con2year(con):
-    return int(con) * 2 + 1787
+    return int(con) * 2 + 1788
 
 fields = [
     ('congress_no', int, 1, 4),
