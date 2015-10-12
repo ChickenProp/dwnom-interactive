@@ -32,7 +32,7 @@ function getTitle(d) {
 
 // Make some variables global to help with debugging.
 var data;
-var data_icpsr;
+var data_progressions;
 var data_year;
 
 function add_axes (parent, scale_x, scale_y) {
@@ -82,9 +82,14 @@ function render (data_) {
     var axes = svg.append('g').attr('id', 'axes');
     var main_graph = svg.append('g').attr('id', 'main-graph');
 
+    main_graph.append('g').attr('id', 'background');
+    main_graph.append('g').attr('id', 'progressions');
+    main_graph.append('g').attr('id', 'points');
+    main_graph.append('g').attr('id', 'aggregates');
+
     add_axes(axes, scale_x, scale_y);
 
-    data_icpsr = d3.nest()
+    data_progressions = d3.nest()
         .key(rcps('icpsr'))
         .rollup(function (values) {
             var ret = [];
@@ -93,7 +98,8 @@ function render (data_) {
             }
             return ret;
         })
-        .entries(data);
+        .entries(data)
+        .filter(function (kv) { return kv.values.length != 0; });
 
     data_year = d3.nest()
         .key(rcps('year'))
@@ -127,29 +133,26 @@ function render (data_) {
         .x1(rcps(2, scale_x))
         .defined(function (d) { return !isNaN(+d[0] + d[1] + d[2]); });
 
-    main_graph.append('path')
+    main_graph.select('#background').append('path')
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
             return [ d.key, d.values.Dmin, d.values.Dmax ];
         })));
 
-    main_graph.append('path')
+    main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
             return [ d.key, d.values.Rmin, d.values.Rmax ];
         })));
 
-    main_graph.selectAll('g.path')
-        .data(data_icpsr)
+    main_graph.select('#progressions').selectAll('g.progression')
+        .data(data_progressions)
       .enter()
         .append('g')
-        .attr('class', 'path')
+        .attr('class', 'progression')
         .each(function (d) {
-            if (d.values.length == 0)
-                return;
-
             d3.select(this)
                 .selectAll('path')
                 .data(d.values)
@@ -159,7 +162,7 @@ function render (data_) {
                 .style('stroke', rcps(0, 'party', getParty, 'lColor'));
         });
 
-    main_graph.selectAll('circle')
+    main_graph.select('#points').selectAll('circle')
         .data(data)
       .enter()
         .append('circle')
@@ -170,7 +173,7 @@ function render (data_) {
         .attr('title', getTitle);
 
     function draw_aggregate(key, color) {
-        var g = main_graph.append('g');
+        var g = main_graph.select('#aggregates').append('g');
         g.append('path')
             .attr('d', line(data_year.map(function (d) {
                 return {'dim1': d.values[key], 'year_jitter': d.key};
