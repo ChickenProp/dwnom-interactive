@@ -35,6 +35,10 @@ var data;
 var data_progressions;
 var data_year;
 
+function congress_breaks(years_extent) {
+    return _.range(years_extent[0]-1, years_extent[1]+2, 2);
+}
+
 function add_axes (parent, scale_x, scale_y) {
     var axis_x = d3.svg.axis()
         .scale(scale_x)
@@ -45,14 +49,11 @@ function add_axes (parent, scale_x, scale_y) {
         .orient('left')
         .tickFormat(d3.format(''));
 
-    var y_extent = scale_y.domain();
-    var congress_breaks = _.range(y_extent[0]-1, y_extent[1]+2, 2);
-
     var axis_y2 = d3.svg.axis()
         .scale(scale_y)
         .orient('left')
         .innerTickSize(-scale_x.range()[1])
-        .tickValues(congress_breaks)
+        .tickValues(congress_breaks(scale_y.domain()))
         .tickFormat(function () { return ''; });
 
     parent.append('g').attr('class', 'axis-inner').call(axis_y2);
@@ -121,7 +122,8 @@ function render (data_) {
                      Dmax: d3.quantile(D_dim1s, 0.9),
                      Rmin: d3.quantile(R_dim1s, 0.1),
                      Rmax: d3.quantile(R_dim1s, 0.9),
-                     overall: d3.mean(values, rcps('dim1')) };
+                     overall: d3.mean(values, rcps('dim1')),
+                     icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
         .entries(data);
 
@@ -154,7 +156,9 @@ function render (data_) {
         .data(data_progressions)
       .enter()
         .append('g')
-        .attr('class', 'progression')
+        .attr('class', function (d) {
+            return 'progression ' + d.values[0][0].icpsr_class;
+        })
         .each(function (d) {
             d3.select(this)
                 .selectAll('path')
@@ -162,13 +166,14 @@ function render (data_) {
               .enter()
                 .append('path')
                 .attr('d', line)
-                .style('stroke', rcps(0, 'party', getParty, 'lColor'));
+                .attr('stroke', rcps(0, 'party', getParty, 'lColor'));
         });
 
     main_graph.select('#points').selectAll('circle')
         .data(data)
       .enter()
         .append('circle')
+        .attr('class', rcps('icpsr_class'))
         .attr('cx', rcps('dim1', scale_x))
         .attr('cy', rcps('year_jitter', scale_y))
         .attr('r', 1)
@@ -198,11 +203,28 @@ function render (data_) {
     draw_aggregate('R', 'red');
 }
 
+function highlight_year(year) {
+    d3.selectAll('.highlight').classed('highlight', false);
+
+    for (var i = 0; i < data_year.length; i++) {
+        if (data_year[i].key != year)
+            continue;
+
+        var classes = data_year[i].values.icpsr_classes;
+        classes.map(function (c) {
+            d3.selectAll('.' + c).classed('highlight', true);
+        });
+    }
+}
+
 function transform (row) {
     row.dim1 = +row.dim1;
     row.year = +row.year;
+
+    row.icpsr_class = 'icpsr-' + row.icpsr;
     // Add some vertical jitter to reduce overplotting.
     row.year_jitter = row.year + Math.random() - 0.5;
+
     return row;
 }
 
