@@ -17,6 +17,14 @@ function rcps () {
     }
 }
 
+function add_nest_key (nested) {
+    nested.key = {};
+    for (var i = 0; i < nested.length; i++) {
+        var d = nested[i];
+        nested.key[ d.key ] = d.values;
+    }
+}
+
 var parties = {
     100: { name: 'Democrat', pColor: '#0000FF', lColor: '#8080FF' },
     200: { name: 'Republican', pColor: '#FF0000', lColor: '#FF8080' },
@@ -126,6 +134,7 @@ function render (data_) {
                      icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
         .entries(data);
+    add_nest_key(data_year);
 
     var line = d3.svg.line()
         .x(rcps('dim1', scale_x))
@@ -206,15 +215,10 @@ function render (data_) {
 function highlight_year(year) {
     d3.selectAll('.highlight').classed('highlight', false);
 
-    for (var i = 0; i < data_year.length; i++) {
-        if (data_year[i].key != year)
-            continue;
-
-        var classes = data_year[i].values.icpsr_classes;
-        classes.map(function (c) {
-            d3.selectAll('.' + c).classed('highlight', true);
-        });
-    }
+    var classes = data_year.key[year].icpsr_classes;
+    classes.map(function (c) {
+        d3.selectAll('.' + c).classed('highlight', true);
+    });
 }
 
 function transform (row) {
