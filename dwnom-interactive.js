@@ -70,7 +70,7 @@ function add_axes (parent, scale_x, scale_y) {
 }
 
 function render (data_) {
-    data = data_;
+    data = data_.filter(function (d) { return d.year >= 1866; });
 
     var margin = { left: 75, right: 30, top: 50, bottom: 30 };
     var width = 1200 - margin.left - margin.right;
@@ -126,10 +126,14 @@ function render (data_) {
 
             return { R: d3.mean(R_dim1s),
                      D: d3.mean(D_dim1s),
-                     Dmin: d3.quantile(D_dim1s, 0.1),
-                     Dmax: d3.quantile(D_dim1s, 0.9),
-                     Rmin: d3.quantile(R_dim1s, 0.1),
-                     Rmax: d3.quantile(R_dim1s, 0.9),
+                     Dmin: d3.quantile(D_dim1s, 0.05),
+                     Dmin2: d3.quantile(D_dim1s, 0.25),
+                     Dmax: d3.quantile(D_dim1s, 0.95),
+                     Dmax2: d3.quantile(D_dim1s, 0.75),
+                     Rmin: d3.quantile(R_dim1s, 0.05),
+                     Rmin2: d3.quantile(R_dim1s, 0.25),
+                     Rmax: d3.quantile(R_dim1s, 0.95),
+                     Rmax2: d3.quantile(R_dim1s, 0.75),
                      overall: d3.mean(values, rcps('dim1')),
                      icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
@@ -155,10 +159,24 @@ function render (data_) {
         })));
 
     main_graph.select('#background').append('path')
+        .attr('fill', 'blue')
+        .attr('fill-opacity', 0.3)
+        .attr('d', area(data_year.map(function (d) {
+            return [ d.key, d.values.Dmin2, d.values.Dmax2 ];
+        })));
+
+    main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
             return [ d.key, d.values.Rmin, d.values.Rmax ];
+        })));
+
+    main_graph.select('#background').append('path')
+        .attr('fill', 'red')
+        .attr('fill-opacity', 0.3)
+        .attr('d', area(data_year.map(function (d) {
+            return [ d.key, d.values.Rmin2, d.values.Rmax2 ];
         })));
 
     main_graph.select('#progressions').selectAll('g.progression')
