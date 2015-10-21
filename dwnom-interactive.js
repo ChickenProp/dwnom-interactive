@@ -174,6 +174,7 @@ function render (data_) {
     main_graph.append('g').attr('id', 'progressions');
     main_graph.append('g').attr('id', 'points');
     main_graph.append('g').attr('id', 'aggregates');
+    main_graph.append('g').attr('id', 'year-highlights');
 
     var legend = svg.append('g')
         .attr('id', 'legend')
@@ -270,7 +271,7 @@ function render (data_) {
                 .selectAll('path')
                 .data(d.values)
               .enter()
-                .append('path')
+               .append('path')
                 .attr('d', line)
                 .attr('stroke', rcps(0, 'party', getParty, 'lColor'));
         });
@@ -278,13 +279,25 @@ function render (data_) {
     main_graph.select('#points').selectAll('circle')
         .data(data)
       .enter()
-        .append('circle')
+       .append('circle')
         .attr('class', rcps('icpsr_class'))
         .attr('cx', rcps('dim1', scale_x))
         .attr('cy', rcps('year_jitter', scale_y))
         .attr('r', 1)
         .attr('fill', rcps('party', getParty, 'pColor'))
-        .attr('title', getTitle);
+        .append('title').text(getTitle);
+
+    main_graph.select('#year-highlights').selectAll('rect')
+        .data(data_year)
+      .enter()
+       .append('rect')
+        .attr({ x: 0, y: function (d) { return scale_y(d.key - 1); },
+                width: 10, height: scale_y(2) - scale_y(0),
+                'fill-opacity': 0.5, fill: 'white' })
+       .append('title')
+        .text(function (d) {
+            return 'Polarization: ' + (d.values.R - d.values.D);
+        });
 
     function draw_aggregate(key, color) {
         var g = main_graph.select('#aggregates').append('g');
