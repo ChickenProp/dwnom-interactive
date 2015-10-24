@@ -204,16 +204,16 @@ function render (data_) {
             var D_dim1s = dim1s('Democrat');
             var R_dim1s = dim1s('Republican');
 
-            return { R: d3.mean(R_dim1s),
-                     D: d3.mean(D_dim1s),
-                     Dmin: d3.quantile(D_dim1s, 0.05),
-                     Dmin2: d3.quantile(D_dim1s, 0.25),
-                     Dmax: d3.quantile(D_dim1s, 0.95),
-                     Dmax2: d3.quantile(D_dim1s, 0.75),
-                     Rmin: d3.quantile(R_dim1s, 0.05),
-                     Rmin2: d3.quantile(R_dim1s, 0.25),
-                     Rmax: d3.quantile(R_dim1s, 0.95),
-                     Rmax2: d3.quantile(R_dim1s, 0.75),
+            function aggs(vals) {
+                return { mean: d3.mean(vals),
+                         p05: d3.quantile(vals, 0.05),
+                         p25: d3.quantile(vals, 0.25),
+                         p75: d3.quantile(vals, 0.75),
+                         p95: d3.quantile(vals, 0.95) };
+            }
+
+            return { R: aggs(R_dim1s),
+                     D: aggs(D_dim1s),
                      overall: d3.mean(values, rcps('dim1')),
                      icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
@@ -235,28 +235,28 @@ function render (data_) {
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.Dmin, d.values.Dmax ];
+            return [ d.key, d.values.D.p25, d.values.D.p75 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.Dmin2, d.values.Dmax2 ];
+            return [ d.key, d.values.D.p05, d.values.D.p95 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.Rmin, d.values.Rmax ];
+            return [ d.key, d.values.R.p25, d.values.R.p75 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.Rmin2, d.values.Rmax2 ];
+            return [ d.key, d.values.R.p05, d.values.R.p95 ];
         })));
 
     main_graph.select('#progressions').selectAll('g.progression')
@@ -305,23 +305,23 @@ function render (data_) {
         })
        .append('title')
         .text(function (d) {
-            return 'Polarization: ' + (d.values.R - d.values.D);
+            return 'Polarization: ' + (d.values.R.mean - d.values.D.mean);
         });
 
-    function draw_aggregate(key, color) {
+    function draw_aggregate(fun, color) {
         var g = main_graph.select('#aggregates').append('g');
         g.append('path')
             .attr('d', line(data_year.map(function (d) {
-                return {'dim1': d.values[key], 'year_jitter': d.key};
+                return {'dim1': fun(d.values), 'year_jitter': d.key};
             })))
             .attr('fill', 'none')
             .attr('stroke', 'black')
             .attr('stroke-width', 2);
     }
 
-    draw_aggregate('overall', 'black');
-    draw_aggregate('D', 'blue');
-    draw_aggregate('R', 'red');
+    draw_aggregate(rcps('overall'), 'black');
+    draw_aggregate(rcps('D', 'mean'), 'blue');
+    draw_aggregate(rcps('R', 'mean'), 'red');
 }
 
 function highlight_year(year) {
