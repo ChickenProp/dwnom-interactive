@@ -294,6 +294,15 @@ function render (data_) {
         .attr({ x: 0, y: function (d) { return scale_y(d.key - 1); },
                 width: 10, height: scale_y(2) - scale_y(0),
                 'fill-opacity': 0.5, fill: 'white' })
+        .on('mouseover', function (d) {
+            d3.select(this).attr('width', width);
+            // Might get better results by doing this in setInterval.
+            highlight_year(d.key);
+        })
+        .on('mouseout', function () {
+            d3.select(this).attr('width', 10);
+            highlight_year(false);
+        })
        .append('title')
         .text(function (d) {
             return 'Polarization: ' + (d.values.R - d.values.D);
@@ -317,6 +326,9 @@ function render (data_) {
 
 function highlight_year(year) {
     d3.selectAll('.highlight').classed('highlight', false);
+
+    if (!year)
+        return;
 
     var classes = data_year.key[year].icpsr_classes;
     classes.map(function (c) {
