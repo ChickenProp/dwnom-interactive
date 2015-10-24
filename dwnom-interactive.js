@@ -35,7 +35,7 @@ function getParty(id) {
 }
 
 function getTitle(d) {
-    return d.name + ' - ' + getParty(d.party).name + ' - ' + d.dim1;
+    return sprintf('%s - %s - %.2f', d.name, getParty(d.party).name, d.dim1);
 }
 
 // Make some variables global to help with debugging.
@@ -155,7 +155,8 @@ function render (data_) {
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
       .append('g') // transform on svg doesn't work in chrome?
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        .attr('transform', sprintf('translate(%d, %d)',
+                                   margin.left, margin.top));
 
     var scale_x = d3.scale.margin()
         .range([0, width])
@@ -203,9 +204,11 @@ function render (data_) {
             }
             var D_dim1s = dim1s('Democrat');
             var R_dim1s = dim1s('Republican');
+            var I_count = values.length - D_dim1s.length - R_dim1s.length;
 
             function aggs(vals) {
                 return { mean: d3.mean(vals),
+                         count: vals.length,
                          p05: d3.quantile(vals, 0.05),
                          p25: d3.quantile(vals, 0.25),
                          p75: d3.quantile(vals, 0.75),
@@ -214,6 +217,7 @@ function render (data_) {
 
             return { R: aggs(R_dim1s),
                      D: aggs(D_dim1s),
+                     I: { count: I_count },
                      overall: d3.mean(values, rcps('dim1')),
                      icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
@@ -305,7 +309,10 @@ function render (data_) {
         })
        .append('title')
         .text(function (d) {
-            return 'Polarization: ' + (d.values.R.mean - d.values.D.mean);
+            var vals = d.values;
+            return sprintf('Counts: %d D, %d R, %d I; Polarization: %.2f',
+                           vals.D.count, vals.R.count, vals.I.count,
+                           vals.R.mean - vals.D.mean);
         });
 
     function draw_aggregate(fun, color) {
