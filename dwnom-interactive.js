@@ -26,9 +26,9 @@ function add_nest_key (nested) {
 }
 
 var parties = {
-    100: { name: 'Democrat', pColor: '#0000FF', lColor: '#8080FF' },
-    200: { name: 'Republican', pColor: '#FF0000', lColor: '#FF8080' },
-    default: { name: 'Other', pColor: '#00FF00', lColor: '#80FF80' }
+    100: { name: 'Democrat', pColor: '#0000FF', lColor: '#9090FF' },
+    200: { name: 'Republican', pColor: '#FF0000', lColor: '#FF9090' },
+    default: { name: 'Other', pColor: '#00CC00', lColor: '#80FF80' }
 };
 function getParty(id) {
     return parties[id] || parties.default;
@@ -88,12 +88,12 @@ function restructure_data(data_) {
                 var val = values[i];
                 var aggs = data_year.key[val.year];
                 if (val.party == 100) {
-                    if (val.dim1 < aggs.D.p05 || val.dim1 > aggs.D.p95)
-                        ret.outlier = true;
+                    // if (val.dim1 < aggs.D.p05 || val.dim1 > aggs.D.p95)
+                    //     ret.outlier = true;
                 }
                 else if (val.party == 200) {
-                    if (val.dim1 < aggs.R.p05 || val.dim1 > aggs.R.p95)
-                        ret.outlier = true;
+                    // if (val.dim1 < aggs.R.p05 || val.dim1 > aggs.R.p95)
+                    //     ret.outlier = true;
                 }
                 else
                     ret.outlier = true;
@@ -231,7 +231,8 @@ function render (data_) {
               .enter()
                .append('path')
                 .attr('d', line)
-                .attr('stroke', rcps(0, 'party', getParty, 'lColor'));
+                .attr('stroke', rcps(0, 'party', getParty, 'lColor'))
+                .attr('stroke-width', 2);
         });
 
     main_graph.select('#points').selectAll('circle')
@@ -241,7 +242,7 @@ function render (data_) {
         .attr('class', rcps('icpsr_class'))
         .attr('cx', rcps('dim1', scale_x))
         .attr('cy', rcps('year_jitter', scale_y))
-        .attr('r', 1)
+        .attr('r', 2)
         .attr('fill', rcps('party', getParty, 'pColor'))
         .append('title').text(getTitle);
 
