@@ -40,8 +40,78 @@ function getTitle(d) {
 
 // Make some variables global to help with debugging.
 var data;
-var data_progressions;
+var data_icpsr;
 var data_year;
+
+function restructure_data(data_) {
+    data = data_;
+
+    data_year = d3.nest()
+        .key(rcps('year'))
+        .rollup(function (values) {
+            function dim1s(name) {
+                return values.filter(function (v) {
+                    return getParty(v.party).name == name;
+                }).map(rcps('dim1')).sort(function (a, b) { return a-b; });
+            }
+            var D_dim1s = dim1s('Democrat');
+            var R_dim1s = dim1s('Republican');
+            var I_count = values.length - D_dim1s.length - R_dim1s.length;
+
+            function aggs(vals) {
+                return { mean: d3.mean(vals),
+                         count: vals.length,
+                         p05: d3.quantile(vals, 0.05),
+                         p25: d3.quantile(vals, 0.25),
+                         p75: d3.quantile(vals, 0.75),
+                         p95: d3.quantile(vals, 0.95) };
+            }
+
+            return { R: aggs(R_dim1s),
+                     D: aggs(D_dim1s),
+                     I: { count: I_count },
+                     overall: d3.mean(values, rcps('dim1')),
+                     icpsr_classes: _.pluck(values, 'icpsr_class') };
+        })
+        .entries(data);
+    add_nest_key(data_year);
+
+    data_icpsr = d3.nest()
+        .key(rcps('icpsr'))
+        .rollup(function (values) {
+            var ret = { outlier: false,
+                        has_progress: values.length > 1,
+                        progressions: [],
+                        icpsr_class: values[0].icpsr_class };
+
+            for (var i = 0; i < values.length; i++) {
+                var val = values[i];
+                var aggs = data_year.key[val.year];
+                if (val.party == 100) {
+                    if (val.dim1 < aggs.D.p05 || val.dim1 > aggs.D.p95)
+                        ret.outlier = true;
+                }
+                else if (val.party == 200) {
+                    if (val.dim1 < aggs.R.p05 || val.dim1 > aggs.R.p95)
+                        ret.outlier = true;
+                }
+                else
+                    ret.outlier = true;
+
+                if (i)
+                    ret.progressions.push([ values[i-1], values[i] ]);
+            }
+
+            ret.outlier_and_progress = ret.outlier && ret.has_progress;
+            return ret;
+        })
+        .entries(data);
+    add_nest_key(data_icpsr);
+
+    data.map(function (d) {
+        d.outlier = data_icpsr.key[d.icpsr].outlier;
+    });
+}
 
 function congress_breaks(years_extent) {
     return _.range(years_extent[0]-1, years_extent[1]+2, 2);
@@ -69,83 +139,9 @@ function add_axes (parent, scale_x, scale_y) {
     parent.append('g').attr('class', 'axis').call(axis_x);
 }
 
-function add_legend(parent) {
-    var rect = parent.append('rect')
-        .attr({ x: -150, y: 0, width: 150, height: 180,
-                fill: '#eee', stroke: 'white' });
-
-    parent.append('rect')
-        .attr({ x: -140, y: 10, width: 20, height: 20,
-                fill: '#00f', 'fill-opacity': 0.3 });
-    parent.append('rect')
-        .attr({ x: -115, y: 10, width: 20, height: 20,
-                fill: '#f00', 'fill-opacity': 0.3 });
-    parent.append('text')
-        .text('5-95 percentile')
-        .attr({ x: -90, y: 20, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-
-    parent.append('rect')
-        .attr({ x: -140, y: 35, width: 20, height: 20,
-                fill: '#00f', 'fill-opacity': 0.3 });
-    parent.append('rect')
-        .attr({ x: -115, y: 35, width: 20, height: 20,
-                fill: '#f00', 'fill-opacity': 0.3 });
-    parent.append('rect')
-        .attr({ x: -140, y: 35, width: 20, height: 20,
-                fill: '#00f', 'fill-opacity': 0.3 });
-    parent.append('rect')
-        .attr({ x: -115, y: 35, width: 20, height: 20,
-                fill: '#f00', 'fill-opacity': 0.3 });
-    parent.append('text')
-        .text('25-75 percentile')
-        .attr({ x: -90, y: 45, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-
-    parent.append('line')
-        .attr({ x1: -135, x2: -125, y1: 60, y2: 80,
-                stroke: 'black', 'stroke-width': 2 });
-    parent.append('text')
-        .text('Party/House mean')
-        .attr({ x: -110, y: 70, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-
-    parent.append('line')
-        .attr({ x1: -135, x2: -125, y1: 90, y2: 110, stroke: '#8080ff' });
-    parent.append('circle')
-        .attr({ cx: -135, cy: 90, r: 1, fill: '#00f' });
-    parent.append('circle')
-        .attr({ cx: -125, cy: 110, r: 1, fill: '#00f' });
-    parent.append('text')
-        .text('Democrat')
-        .attr({ x: -110, y: 100, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-
-    parent.append('line')
-        .attr({ x1: -135, x2: -125, y1: 120, y2: 140, stroke: '#ff8080' });
-    parent.append('circle')
-        .attr({ cx: -135, cy: 120, r: 1, fill: '#f00' });
-    parent.append('circle')
-        .attr({ cx: -125, cy: 140, r: 1, fill: '#f00' });
-    parent.append('text')
-        .text('Republican')
-        .attr({ x: -110, y: 130, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-
-    parent.append('line')
-        .attr({ x1: -135, x2: -125, y1: 150, y2: 170, stroke: '#80ff80' });
-    parent.append('circle')
-        .attr({ cx: -135, cy: 150, r: 1, fill: '#0f0' });
-    parent.append('circle')
-        .attr({ cx: -125, cy: 170, r: 1, fill: '#0f0' });
-    parent.append('text')
-        .text('Independent')
-        .attr({ x: -110, y: 160, 'dominant-baseline': 'middle',
-              'font-size': 13 });
-}
-
 function render (data_) {
-    data = data_.filter(function (d) { return d.year >= 1866; });
+    data_ = data_.filter(function (d) { return d.year >= 1866; });
+    restructure_data(data_); // defines global vars data, data_*
 
     var margin = { left: 75, right: 30, top: 50, bottom: 30 };
     var width = 1200 - margin.left - margin.right;
@@ -181,48 +177,6 @@ function render (data_) {
         .attr('id', 'legend')
         .attr('transform', 'translate(' + (width-10) + ', 10)');
     add_legend(legend);
-
-    data_progressions = d3.nest()
-        .key(rcps('icpsr'))
-        .rollup(function (values) {
-            var ret = [];
-            for (var i = 0; i < values.length - 1; i++) {
-                ret.push([ values[i], values[i+1] ]);
-            }
-            return ret;
-        })
-        .entries(data)
-        .filter(function (kv) { return kv.values.length != 0; });
-
-    data_year = d3.nest()
-        .key(rcps('year'))
-        .rollup(function (values) {
-            function dim1s(name) {
-                return values.filter(function (v) {
-                    return getParty(v.party).name == name;
-                }).map(rcps('dim1')).sort(function (a, b) { return a-b; });
-            }
-            var D_dim1s = dim1s('Democrat');
-            var R_dim1s = dim1s('Republican');
-            var I_count = values.length - D_dim1s.length - R_dim1s.length;
-
-            function aggs(vals) {
-                return { mean: d3.mean(vals),
-                         count: vals.length,
-                         p05: d3.quantile(vals, 0.05),
-                         p25: d3.quantile(vals, 0.25),
-                         p75: d3.quantile(vals, 0.75),
-                         p95: d3.quantile(vals, 0.95) };
-            }
-
-            return { R: aggs(R_dim1s),
-                     D: aggs(D_dim1s),
-                     I: { count: I_count },
-                     overall: d3.mean(values, rcps('dim1')),
-                     icpsr_classes: _.pluck(values, 'icpsr_class') };
-        })
-        .entries(data);
-    add_nest_key(data_year);
 
     var line = d3.svg.line()
         .x(rcps('dim1', scale_x))
@@ -264,16 +218,16 @@ function render (data_) {
         })));
 
     main_graph.select('#progressions').selectAll('g.progression')
-        .data(data_progressions)
+        .data(data_icpsr.filter(rcps('values', 'outlier_and_progress')))
       .enter()
         .append('g')
         .attr('class', function (d) {
-            return 'progression ' + d.values[0][0].icpsr_class;
+            return 'progression ' + d.values.icpsr_class;
         })
         .each(function (d) {
             d3.select(this)
                 .selectAll('path')
-                .data(d.values)
+                .data(d.values.progressions)
               .enter()
                .append('path')
                 .attr('d', line)
@@ -281,7 +235,7 @@ function render (data_) {
         });
 
     main_graph.select('#points').selectAll('circle')
-        .data(data)
+        .data(data.filter(rcps('outlier')))
       .enter()
        .append('circle')
         .attr('class', rcps('icpsr_class'))
