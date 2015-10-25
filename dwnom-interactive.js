@@ -257,6 +257,10 @@ function render (data_) {
             d3.select(this).attr('width', width);
             // Might get better results by doing this in setInterval.
             highlight_year(d.key);
+            d3.select('#num-democrats').text(d.values.D.count);
+            d3.select('#num-republicans').text(d.values.R.count);
+            d3.select('#num-independents').text(d.values.I.count);
+            d3.select('#polarization').text((d.values.R.mean - d.values.D.mean).toFixed(2));
         })
         .on('mouseout', function () {
             d3.select(this).attr('width', 10);
