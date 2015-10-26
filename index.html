@@ -19,11 +19,18 @@
       #points circle { fill-opacity: 1; }
       #points circle.highlight { fill-opacity: 1; }
 
-      #infobox { width: 100; position: fixed; background-color: white; }
+      #infobox {
+        width: 100;
+        position: fixed;
+        right: 10px;
+        background-color: white;
+      }
+      .help { border-bottom: 1px dotted black; cursor: help; }
     </style>
   </head>
   <body>
     <div id="infobox">
+      <h4 id="infobox-year"></h4>
       <dl>
         <dt>Democrats</dt>
         <dd id="num-democrats"></dd>
@@ -31,8 +38,9 @@
         <dd id="num-republicans"></dd>
         <dt>Independents</dt>
         <dd id="num-independents"></dd>
-        <dt>Polarization</dt>
+        <dt><span class="help" title="The difference between the mean republican and democrat scores.">Polarization</span></dt>
         <dd id="polarization"></dd>
+      </dl>
     </div>
     <p>This graph shows the <a href="https://en.wikipedia.org/wiki/NOMINATE_%28scaling_method%29">DW-NOMINATE</a>
       left-right score of each member of each U.S. House of Representatives

@@ -257,6 +257,8 @@ function render (data_) {
             d3.select(this).attr('width', width);
             // Might get better results by doing this in setInterval.
             highlight_year(d.key);
+            d3.select('#infobox-year').text(sprintf('%d - %d',
+                                                    +d.key - 1, +d.key + 1));
             d3.select('#num-democrats').text(d.values.D.count);
             d3.select('#num-republicans').text(d.values.R.count);
             d3.select('#num-independents').text(d.values.I.count);
