@@ -17,11 +17,14 @@ function rcps () {
     }
 }
 
-function add_nest_key (nested) {
+// Turn [ { key: k0, values: v0 }, ... ] into just [ v0, ... ]. But also add a
+// .key property, with .key[k0] = v0.
+function restructure_nest (nested) {
     nested.key = {};
     for (var i = 0; i < nested.length; i++) {
         var d = nested[i];
         nested.key[ d.key ] = d.values;
+        nested[i] = d.values;
     }
 }
 
@@ -67,19 +70,26 @@ function restructure_data(data_) {
                          p95: d3.quantile(vals, 0.95) };
             }
 
-            return { R: aggs(R_dim1s),
+            var R_aggs = aggs(R_dim1s);
+            var D_aggs = aggs(D_dim1s);
+
+            return { year: values[0].year,
+                     R: aggs(R_dim1s),
                      D: aggs(D_dim1s),
                      I: { count: I_count },
-                     overall: d3.mean(values, rcps('dim1')),
+                     all: { mean: d3.mean(values, rcps('dim1')),
+                            count: values.length },
+                     polarization: R_aggs.mean - D_aggs.mean,
                      icpsr_classes: _.pluck(values, 'icpsr_class') };
         })
         .entries(data);
-    add_nest_key(data_year);
+    restructure_nest(data_year);
 
     data_icpsr = d3.nest()
         .key(rcps('icpsr'))
         .rollup(function (values) {
-            var ret = { outlier: false,
+            var ret = { icpsr: values[0].icpsr,
+                        outlier: false,
                         has_progress: values.length > 1,
                         progressions: [],
                         icpsr_class: values[0].icpsr_class };
@@ -106,7 +116,7 @@ function restructure_data(data_) {
             return ret;
         })
         .entries(data);
-    add_nest_key(data_icpsr);
+    restructure_nest(data_icpsr);
 
     data.map(function (d) {
         d.outlier = data_icpsr.key[d.icpsr].outlier;
@@ -147,7 +157,7 @@ function render (data_) {
     var width = 1200 - margin.left - margin.right;
     var height = 1200 - margin.top - margin.bottom;
 
-    var svg = d3.select('svg')
+    var svg = d3.select('#main-graph')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
       .append('g') // transform on svg doesn't work in chrome?
@@ -193,41 +203,41 @@ function render (data_) {
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.D.p25, d.values.D.p75 ];
+            return [ d.year, d.D.p25, d.D.p75 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.D.p05, d.values.D.p95 ];
+            return [ d.year, d.D.p05, d.D.p95 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.R.p25, d.values.R.p75 ];
+            return [ d.year, d.R.p25, d.R.p75 ];
         })));
 
     main_graph.select('#background').append('path')
         .attr('fill', 'red')
         .attr('fill-opacity', 0.3)
         .attr('d', area(data_year.map(function (d) {
-            return [ d.key, d.values.R.p05, d.values.R.p95 ];
+            return [ d.year, d.R.p05, d.R.p95 ];
         })));
 
     main_graph.select('#progressions').selectAll('g.progression')
-        .data(data_icpsr.filter(rcps('values', 'outlier_and_progress')))
+        .data(data_icpsr.filter(rcps('outlier_and_progress')))
       .enter()
         .append('g')
         .attr('class', function (d) {
-            return 'progression ' + d.values.icpsr_class;
+            return 'progression ' + d.icpsr_class;
         })
         .each(function (d) {
             d3.select(this)
                 .selectAll('path')
-                .data(d.values.progressions)
+                .data(d.progressions)
               .enter()
                .append('path')
                 .attr('d', line)
@@ -250,46 +260,64 @@ function render (data_) {
         .data(data_year)
       .enter()
        .append('rect')
-        .attr({ x: 0, y: function (d) { return scale_y(d.key - 1); },
+        .attr({ x: 0, y: function (d) { return scale_y(d.year - 1); },
                 width: 10, height: scale_y(2) - scale_y(0),
                 'fill-opacity': 0.5, fill: 'white' })
         .on('mouseover', function (d) {
             d3.select(this).attr('width', width);
             // Might get better results by doing this in setInterval.
-            highlight_year(d.key);
+            highlight_year(d.year);
             d3.select('#infobox-year').text(sprintf('%d - %d',
-                                                    +d.key - 1, +d.key + 1));
-            d3.select('#num-democrats').text(d.values.D.count);
-            d3.select('#num-republicans').text(d.values.R.count);
-            d3.select('#num-independents').text(d.values.I.count);
-            d3.select('#polarization').text((d.values.R.mean - d.values.D.mean).toFixed(2));
+                                                    +d.year - 1, +d.year + 1));
+            d3.select('#num-democrats').text(d.D.count);
+            d3.select('#num-republicans').text(d.R.count);
+            d3.select('#num-independents').text(d.I.count);
+            d3.select('#polarization').text(d.polarization.toFixed(2));
         })
         .on('mouseout', function () {
             d3.select(this).attr('width', 10);
             highlight_year(false);
-        })
-       .append('title')
-        .text(function (d) {
-            var vals = d.values;
-            return sprintf('Counts: %d D, %d R, %d I; Polarization: %.2f',
-                           vals.D.count, vals.R.count, vals.I.count,
-                           vals.R.mean - vals.D.mean);
         });
 
-    function draw_aggregate(fun, color) {
+    function draw_aggregate(party) {
         var g = main_graph.select('#aggregates').append('g');
         g.append('path')
             .attr('d', line(data_year.map(function (d) {
-                return {'dim1': fun(d.values), 'year_jitter': d.key};
+                return {'dim1': d[party].mean, 'year_jitter': d.year};
             })))
             .attr('fill', 'none')
             .attr('stroke', 'black')
             .attr('stroke-width', 2);
     }
 
-    draw_aggregate(rcps('overall'), 'black');
-    draw_aggregate(rcps('D', 'mean'), 'blue');
-    draw_aggregate(rcps('R', 'mean'), 'red');
+    draw_aggregate('all');
+    draw_aggregate('D');
+    draw_aggregate('R');
+}
+
+function render_polarization (data) {
+    var margin = { left: 75, right: 30, top: 50, bottom: 30 };
+    var width = 600 - margin.left - margin.right;
+    var height = 400 - margin.top - margin.bottom;
+
+    var svg = d3.select('#secondary-graph')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+        .attr('transform', sprintf('translate(%d, %d)',
+                                   margin.left, margin.top));
+
+    var scale_x = d3.scale.margin()
+        .range([0, width])
+        .margin([5, 0])
+        .domain(d3.extent(data, rcps('values', 'year')));
+    var scale_y = d3.scale.margin()
+        .range([0, height])
+        .margin([5, 0])
+        .domain(d3.extent(data, rcps('values', 'all', 'count')));
+
+    var axes = svg.append('g').attr('id', 'axes');
+    add_axes(axes, scale_x, scale_y);
 }
 
 function highlight_year(year) {
