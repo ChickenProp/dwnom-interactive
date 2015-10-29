@@ -157,7 +157,7 @@ function render (data_) {
     var width = 1200 - margin.left - margin.right;
     var height = 1200 - margin.top - margin.bottom;
 
-    var svg = d3.select('#main-graph')
+    var svg = d3.select('#main-graph-ctnr')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
       .append('g') // transform on svg doesn't work in chrome?
@@ -173,7 +173,7 @@ function render (data_) {
         .margin([5, 0])
         .domain(d3.extent(data, rcps('year')));
 
-    var axes = svg.append('g').attr('id', 'axes');
+    var axes = svg.append('g').attr('class', 'axes');
     add_axes(axes, scale_x, scale_y);
 
     var main_graph = svg.append('g').attr('id', 'main-graph');
@@ -300,24 +300,30 @@ function render_polarization (data) {
     var width = 600 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
-    var svg = d3.select('#secondary-graph')
+    var svg = d3.select('#secondary-graph-ctnr')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
       .append('g')
         .attr('transform', sprintf('translate(%d, %d)',
                                    margin.left, margin.top));
 
-    var scale_x = d3.scale.margin()
+    var scale_x = d3.scale.linear()
         .range([0, width])
-        .margin([5, 0])
-        .domain(d3.extent(data, rcps('values', 'year')));
-    var scale_y = d3.scale.margin()
-        .range([0, height])
-        .margin([5, 0])
-        .domain(d3.extent(data, rcps('values', 'all', 'count')));
+        .domain(d3.extent(data, rcps('year')));
+    var scale_y = d3.scale.linear()
+        .range([height, 0])
+        .domain([0, d3.max(data, rcps('polarization'))]);
 
-    var axes = svg.append('g').attr('id', 'axes');
+    var axes = svg.append('g').attr('class', 'axes');
     add_axes(axes, scale_x, scale_y);
+
+    var line = d3.svg.line()
+        .x(rcps('year', scale_x))
+        .y(rcps('polarization', scale_y));
+    svg.append('path')
+        .attr({ d: line(data),
+                fill: 'none',
+                stroke: 'black' });
 }
 
 function highlight_year(year) {
