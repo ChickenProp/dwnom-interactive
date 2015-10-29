@@ -293,11 +293,13 @@ function render (data_) {
     draw_aggregate('all');
     draw_aggregate('D');
     draw_aggregate('R');
+
+    render_polarization(data_year);
 }
 
 function render_polarization (data) {
     var margin = { left: 75, right: 30, top: 50, bottom: 30 };
-    var width = 600 - margin.left - margin.right;
+    var width = 800 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
     var svg = d3.select('#secondary-graph-ctnr')
@@ -324,6 +326,13 @@ function render_polarization (data) {
         .attr({ d: line(data),
                 fill: 'none',
                 stroke: 'black' });
+}
+
+function show_polarization () {
+    d3.select('#secondary-graph-ctnr').style('display', 'block');
+}
+function hide_polarization () {
+    d3.select('#secondary-graph-ctnr').style('display', 'none');
 }
 
 function highlight_year(year) {
