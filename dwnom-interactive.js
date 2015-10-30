@@ -89,37 +89,29 @@ function restructure_data(data_) {
         .key(rcps('icpsr'))
         .rollup(function (values) {
             var ret = { icpsr: values[0].icpsr,
-                        outlier: false,
+                        ever_independent: false,
                         has_progress: values.length > 1,
                         progressions: [],
                         icpsr_class: values[0].icpsr_class };
 
             for (var i = 0; i < values.length; i++) {
-                var val = values[i];
-                var aggs = data_year.key[val.year];
-                if (val.party == 100) {
-                    // if (val.dim1 < aggs.D.p05 || val.dim1 > aggs.D.p95)
-                    //     ret.outlier = true;
-                }
-                else if (val.party == 200) {
-                    // if (val.dim1 < aggs.R.p05 || val.dim1 > aggs.R.p95)
-                    //     ret.outlier = true;
-                }
-                else
-                    ret.outlier = true;
+                var party = values[i].party;
+                if (party != 100 && party != 200)
+                    ret.ever_independent = true;
 
                 if (i)
                     ret.progressions.push([ values[i-1], values[i] ]);
             }
 
-            ret.outlier_and_progress = ret.outlier && ret.has_progress;
+            ret.ever_independent_and_progress =
+                ret.ever_independent && ret.has_progress;
             return ret;
         })
         .entries(data);
     restructure_nest(data_icpsr);
 
     data.map(function (d) {
-        d.outlier = data_icpsr.key[d.icpsr].outlier;
+        d.ever_independent = data_icpsr.key[d.icpsr].ever_independent;
     });
 }
 
@@ -228,7 +220,7 @@ function render (data_) {
         })));
 
     main_graph.select('#progressions').selectAll('g.progression')
-        .data(data_icpsr.filter(rcps('outlier_and_progress')))
+        .data(data_icpsr.filter(rcps('ever_independent_and_progress')))
       .enter()
         .append('g')
         .attr('class', function (d) {
@@ -246,7 +238,7 @@ function render (data_) {
         });
 
     main_graph.select('#points').selectAll('circle')
-        .data(data.filter(rcps('outlier')))
+        .data(data.filter(rcps('ever_independent')))
       .enter()
        .append('circle')
         .attr('class', rcps('icpsr_class'))
