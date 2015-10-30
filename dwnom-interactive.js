@@ -287,6 +287,16 @@ function render (data_) {
     draw_aggregate('R');
 
     render_polarization(data_year);
+
+    d3.select('#show-polarization').on('click', function () {
+        show_polarization()
+        d3.event.stopPropagation();
+    });
+    d3.select('html').on('click', function () {
+        var ctnr = d3.select('#secondary-graph-ctnr').node();
+        if (!ctnr.contains(d3.event.target))
+            hide_polarization();
+    });
 }
 
 function render_polarization (data) {
