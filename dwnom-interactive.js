@@ -141,6 +141,19 @@ function add_axes (parent, scale_x, scale_y) {
     parent.append('g').attr('class', 'axis').call(axis_x);
 }
 
+var infobox_fixed = false;
+function fill_infobox (d) {
+    if (infobox_fixed)
+        return;
+
+    d3.select('#infobox-year')
+        .text(sprintf('%d - %d', +d.year - 1, +d.year + 1));
+    d3.select('#num-democrats').text(d.D.count);
+    d3.select('#num-republicans').text(d.R.count);
+    d3.select('#num-independents').text(d.I.count);
+    d3.select('#polarization').text(d.polarization.toFixed(2));
+}
+
 function render (data_) {
     data_ = data_.filter(function (d) { return d.year >= 1866; });
     restructure_data(data_); // defines global vars data, data_*
@@ -170,10 +183,10 @@ function render (data_) {
 
     var main_graph = svg.append('g').attr('id', 'main-graph');
     main_graph.append('g').attr('id', 'background');
+    main_graph.append('g').attr('id', 'year-highlights');
     main_graph.append('g').attr('id', 'progressions');
     main_graph.append('g').attr('id', 'points');
     main_graph.append('g').attr('id', 'aggregates');
-    main_graph.append('g').attr('id', 'year-highlights');
 
     var legend = svg.append('g')
         .attr('id', 'legend')
@@ -253,23 +266,16 @@ function render (data_) {
       .enter()
        .append('rect')
         .attr({ x: 0, y: function (d) { return scale_y(d.year - 1); },
-                width: 10, height: scale_y(2) - scale_y(0),
-                'fill-opacity': 0.5, fill: 'white' })
+                width: width, height: scale_y(2) - scale_y(0),
+                'fill-opacity': 0.5, fill: 'none' })
         .on('mouseover', function (d) {
-            d3.select(this).attr('width', width);
-            // Might get better results by doing this in setInterval.
             highlight_year(d.year);
-            d3.select('#infobox-year').text(sprintf('%d - %d',
-                                                    +d.year - 1, +d.year + 1));
-            d3.select('#num-democrats').text(d.D.count);
-            d3.select('#num-republicans').text(d.R.count);
-            d3.select('#num-independents').text(d.I.count);
-            d3.select('#polarization').text(d.polarization.toFixed(2));
+            fill_infobox(d);
         })
         .on('mouseout', function () {
-            d3.select(this).attr('width', 10);
             highlight_year(false);
-        });
+        })
+        .on('click', function () { infobox_fixed = true; });
 
     function draw_aggregate(party) {
         var g = main_graph.select('#aggregates').append('g');

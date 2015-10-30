@@ -17,8 +17,11 @@
         stroke-opacity: 1;
       }
 
-      #points circle { fill-opacity: 1; }
-      #points circle.highlight { fill-opacity: 1; }
+      #points circle { stroke: white; stroke-width: 0; }
+      #points circle.highlight { stroke-width: 1; }
+
+      #year-highlights rect { pointer-events: all; cursor: pointer; }
+      #year-highlights rect:hover { fill: white; }
 
       #infobox {
         width: 100;
