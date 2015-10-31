@@ -29,13 +29,19 @@ function restructure_nest (nested) {
 }
 
 var parties = {
-    100: { name: 'Democrat', pColor: '#0000FF', lColor: '#9090FF' },
-    200: { name: 'Republican', pColor: '#FF0000', lColor: '#FF9090' },
-    default: { name: 'Other', pColor: '#00CC00', lColor: '#80FF80' }
+    100: { name: 'Democrat' },
+    200: { name: 'Republican' },
+    default: { name: 'Other' }
 };
 function getParty(id) {
     return parties[id] || parties.default;
 }
+
+var set_party_class = {
+    dem: function (d) { return (d[0]||d).party == 100; },
+    rep: function (d) { return (d[0]||d).party == 200; },
+    ind: function (d) { var p = (d[0]||d).party; return p != 100 && p != 200; }
+};
 
 function getTitle(d) {
     return sprintf('%s - %s - %.2f', d.name, getParty(d.party).name, d.dim1);
@@ -236,18 +242,16 @@ function render (data_) {
         .data(data_icpsr.filter(rcps('ever_independent_and_progress')))
       .enter()
         .append('g')
-        .attr('class', function (d) {
-            return 'progression ' + d.icpsr_class;
-        })
+        .attr('class', rcps('icpsr_class'))
+        .classed('progression', true)
         .each(function (d) {
             d3.select(this)
                 .selectAll('path')
                 .data(d.progressions)
               .enter()
                .append('path')
-                .attr('d', line)
-                .attr('stroke', rcps(0, 'party', getParty, 'lColor'))
-                .attr('stroke-width', 2);
+                .classed(set_party_class)
+                .attr('d', line);
         });
 
     main_graph.select('#points').selectAll('circle')
@@ -255,11 +259,11 @@ function render (data_) {
       .enter()
        .append('circle')
         .attr('class', rcps('icpsr_class'))
-        .attr('cx', rcps('dim1', scale_x))
-        .attr('cy', rcps('year_jitter', scale_y))
-        .attr('r', 2)
-        .attr('fill', rcps('party', getParty, 'pColor'))
-        .append('title').text(getTitle);
+        .classed(set_party_class)
+        .attr({ cx: rcps('dim1', scale_x),
+                cy: rcps('year_jitter', scale_y),
+                r: 2 })
+       .append('title').text(getTitle);
 
     main_graph.select('#year-highlights').selectAll('rect')
         .data(data_year)

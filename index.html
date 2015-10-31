@@ -10,15 +10,22 @@
       g.progression path {
         fill: none;
         pointer-events: all;
-        stroke-opacity: 1;
+        stroke-width: 2;
       }
       g.progression:hover path, g.progression.highlight path {
-        stroke: #fff;
-        stroke-opacity: 1;
+        stroke: #fff !important;
       }
+      g.progression path.dem { stroke: #9090FF; }
+      g.progression path.rep { stroke: #FF9090; }
+      g.progression path.ind { stroke: #80FF80; }
 
       #points circle { stroke: white; stroke-width: 0; }
-      #points circle.highlight { stroke-width: 1; }
+      #points circle.dem { fill: #00F; }
+      #points circle.rep { fill: #F00; }
+      #points circle.ind { fill: #0C0; }
+      #points circle.dem.highlight { fill: #88F; }
+      #points circle.rep.highlight { fill: #F88; }
+      #points circle.ind.highlight { fill: #6C6; }
 
       #year-highlights rect { pointer-events: all; cursor: pointer; }
       #year-highlights rect:hover { fill: white; }
