@@ -35,7 +35,22 @@
         position: fixed;
         right: 10px;
         background-color: white;
+        border: 1px solid white;
+        padding: 3px;
+        display: none; /* gets changed when we fill it */
       }
+      #infobox.fixed { border: 1px solid black; }
+
+      #infobox h4 { margin-top: 3px; }
+      #infobox-unfix {
+        display: none;
+        margin-top: 2px;
+        float: right;
+        text-decoration: none;
+        font-weight: bold;
+        color: grey;
+      }
+      #infobox.fixed #infobox-unfix { display: block; }
       .help { border-bottom: 1px dotted black; cursor: help; }
 
       #secondary-graph-ctnr {
@@ -48,6 +63,7 @@
   </head>
   <body>
     <div id="infobox">
+      <a id="infobox-unfix" href="#">&times;</a>
       <h4 id="infobox-year"></h4>
       <dl>
         <dt>Democrats</dt>

@@ -148,9 +148,20 @@ function add_axes (parent, scale_x, scale_y) {
 }
 
 var infobox_fixed = false;
-function fill_infobox (d) {
-    if (infobox_fixed)
+function fix_infobox () {
+    infobox_fixed = true;
+    d3.select('#infobox').classed('fixed', true);
+}
+function unfix_infobox () {
+    infobox_fixed = false;
+    d3.select('#infobox').classed('fixed', false);
+}
+
+function fill_infobox (d, force) {
+    if (infobox_fixed && !force)
         return;
+
+    d3.select('#infobox').style('display', 'block');
 
     d3.select('#infobox-year')
         .text(sprintf('%d - %d', +d.year - 1, +d.year + 1));
@@ -279,7 +290,10 @@ function render (data_) {
         .on('mouseout', function () {
             highlight_year(false);
         })
-        .on('click', function () { infobox_fixed = true; });
+        .on('click', function (d) {
+            fill_infobox(d, true);
+            fix_infobox();
+        });
 
     function draw_aggregate(party) {
         var g = main_graph.select('#aggregates').append('g');
@@ -306,6 +320,10 @@ function render (data_) {
         var ctnr = d3.select('#secondary-graph-ctnr').node();
         if (!ctnr.contains(d3.event.target))
             hide_polarization();
+    });
+    d3.select('#infobox-unfix').on('click', function () {
+        unfix_infobox();
+        d3.event.preventDefault();
     });
 }
 
