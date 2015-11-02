@@ -2,6 +2,7 @@
   <head>
     <title>Political Polarization in the US House of Representatives</title>
     <style>
+      p { width: 600px; }
       #main-graph-ctnr { background-color: #eee; }
       #secondary-graph-ctnr { background-color: #fff; }
       .axes line, .axes path { stroke: #000; fill: none; }
@@ -56,10 +57,11 @@
       #secondary-graph-ctnr {
         display: none;
         width: 800px;
-        height: 400px;
+        height: 600px;
         position: fixed;
         margin: auto;
         left: 0; right: 0;
+        border: 1px solid black;
       }
 
       svg.counts path { stroke-width: 1 !important; stroke: grey !important; }
@@ -86,9 +88,14 @@
         <dd id="polarization"></dd>
       </dl>
     </div>
-    <p>This graph shows the <a href="https://en.wikipedia.org/wiki/NOMINATE_%28scaling_method%29">DW-NOMINATE</a>
-      left-right score of each member of each U.S. House of Representatives
-      since 1865.</p>
+    <p>This graph is based on
+      <a href="https://en.wikipedia.org/wiki/NOMINATE_%28scaling_method%29">DW-NOMINATE</a>
+      left-right scores of each member of each U.S. House of Representatives
+      since 1865. This uses a member's voting record to measure the direction
+      and extremity of their political views, regardless of party affiliation.
+    <p>For members elected as independents, their entire career in the House is
+    charted, including any congresses where they were elected as democrats or
+    republicans.
     <svg id="secondary-graph-ctnr"></svg>
     <svg id="main-graph-ctnr"></svg>
     <script src="d3.min.js"></script>

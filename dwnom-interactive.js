@@ -358,14 +358,19 @@ function render_counts (data, order) {
 
     var margin = { left: 50, right: 30, top: 30, bottom: 60 };
     var width = 800 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
+    var height = 600 - margin.top - margin.bottom;
 
     var chart = new dimple.chart(svg, data);
     chart.setBounds(margin.left, margin.top, width, height);
-    chart.addCategoryAxis('x', 'year');
-    chart.addMeasureAxis('y', 'count');
+
+    var x = chart.addCategoryAxis('x', 'year');
+    var y = chart.addMeasureAxis('y', 'count');
     var s = chart.addSeries('party', dimple.plot.area);
+
+    x.title = 'Year';
+    y.title = 'Number of members';
     s.interpolation = 'step';
+
     chart.assignClass('Democrat', 'dem');
     chart.assignClass('Republican', 'rep');
     chart.assignClass('Independent', 'ind');
@@ -379,6 +384,18 @@ function render_counts (data, order) {
     }
 
     chart.draw();
+
+    // Hacky: when there are no independents, the independent marker completely
+    // covers the one below it, so remove all those markers. Don't bother if the
+    // independents are at the bottom anyway.
+
+    if (order && order[0] == 'I')
+        return;
+
+    d3.selectAll('circle.dimple-marker').each(function (d) {
+        if (d.yValue == 0)
+            d3.select(this).remove();
+    });
 }
 
 function render_polarization (data) {
@@ -387,13 +404,17 @@ function render_polarization (data) {
 
     var margin = { left: 50, right: 30, top: 30, bottom: 60 };
     var width = 800 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
+    var height = 600 - margin.top - margin.bottom;
 
     var chart = new dimple.chart(svg, data);
     chart.setBounds(margin.left, margin.top, width, height);
-    chart.addCategoryAxis('x', 'year');
-    chart.addMeasureAxis('y', 'polarization');
+    var x = chart.addCategoryAxis('x', 'year');
+    var y = chart.addMeasureAxis('y', 'polarization');
     chart.addSeries(null, dimple.plot.line);
+
+    x.title = 'Year';
+    y.title = 'Polarization';
+
     chart.draw();
 }
 
