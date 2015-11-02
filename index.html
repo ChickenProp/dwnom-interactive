@@ -61,6 +61,11 @@
         margin: auto;
         left: 0; right: 0;
       }
+
+      svg.counts path { stroke-width: 1 !important; stroke: grey !important; }
+      svg.counts path.dem { fill: #00F !important; }
+      svg.counts path.rep { fill: #F00 !important; }
+      svg.counts path.ind { fill: #0C0 !important; }
     </style>
   </head>
   <body>
@@ -68,11 +73,11 @@
       <a id="infobox-unfix" href="#">&times;</a>
       <h4 id="infobox-year"></h4>
       <dl>
-        <dt>Democrats</dt>
+        <dt><a id="show-count-dem" href="#">Democrats</a></dt>
         <dd id="num-democrats"></dd>
-        <dt>Republicans</dt>
+        <dt><a id="show-count-rep" href="#">Republicans</a></dt>
         <dd id="num-republicans"></dd>
-        <dt>Independents</dt>
+        <dt><a id="show-count-ind" href="#">Independents</a></dt>
         <dd id="num-independents"></dd>
         <dt>
           <a id="show-polarization" href="#">Polarization</a>

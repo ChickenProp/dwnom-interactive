@@ -51,6 +51,7 @@ function getTitle(d) {
 var data;
 var data_icpsr;
 var data_year;
+var data_year_long;
 
 function restructure_data(data_) {
     data = data_;
@@ -90,6 +91,14 @@ function restructure_data(data_) {
         })
         .entries(data);
     restructure_nest(data_year);
+
+    data_year_long = _.flatten(data_year.map(function (d) {
+        return [
+            _.extend({}, d.R, { year: d.year, party: 'Republican' }),
+            _.extend({}, d.D, { year: d.year, party: 'Democrat' }),
+            _.extend({}, d.I, { year: d.year, party: 'Independent' }),
+        ];
+    }), true);
 
     data_icpsr = d3.nest()
         .key(rcps('icpsr'))
@@ -310,16 +319,22 @@ function render (data_) {
     draw_aggregate('D');
     draw_aggregate('R');
 
-    d3.select('#show-polarization').on('click', function () {
-        show_polarization();
-        render_polarization(data_year);
-        d3.event.stopPropagation();
-        d3.event.preventDefault();
-    });
+    d3.select('#show-polarization')
+        .on('click', secondary_click_handler(render_polarization, data_year));
+    d3.select('#show-count-ind')
+        .on('click', secondary_click_handler(render_counts,
+                                             data_year_long, 'IDR'));
+    d3.select('#show-count-rep')
+        .on('click', secondary_click_handler(render_counts,
+                                             data_year_long, 'RDI'));
+    d3.select('#show-count-dem')
+        .on('click', secondary_click_handler(render_counts,
+                                             data_year_long, 'DRI'));
+
     d3.select('html').on('click', function () {
         var ctnr = d3.select('#secondary-graph-ctnr').node();
         if (!ctnr.contains(d3.event.target))
-            hide_polarization();
+            hide_secondary();
     });
     d3.select('#infobox-unfix').on('click', function () {
         unfix_infobox();
@@ -327,12 +342,54 @@ function render (data_) {
     });
 }
 
-function render_polarization (data) {
+function secondary_click_handler(func, data, arg) {
+    return function () {
+        show_secondary();
+        d3.select('#secondary-graph-ctnr').html('');
+        func(data, arg);
+        d3.event.stopPropagation();
+        d3.event.preventDefault();
+    }
+}
+
+function render_counts (data, order) {
+    var svg = d3.select('#secondary-graph-ctnr')
+        .classed({counts: true, polarization: false});
+
     var margin = { left: 50, right: 30, top: 30, bottom: 60 };
     var width = 800 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
-    var chart = new dimple.chart(d3.select('#secondary-graph-ctnr'), data);
+    var chart = new dimple.chart(svg, data);
+    chart.setBounds(margin.left, margin.top, width, height);
+    chart.addCategoryAxis('x', 'year');
+    chart.addMeasureAxis('y', 'count');
+    var s = chart.addSeries('party', dimple.plot.area);
+    s.interpolation = 'step';
+    chart.assignClass('Democrat', 'dem');
+    chart.assignClass('Republican', 'rep');
+    chart.assignClass('Independent', 'ind');
+
+    if (order) {
+        var o = [null, null, null];
+        o[ order.indexOf('I') ] = 'Independent';
+        o[ order.indexOf('D') ] = 'Democrat';
+        o[ order.indexOf('R') ] = 'Republican';
+        s.addOrderRule(o);
+    }
+
+    chart.draw();
+}
+
+function render_polarization (data) {
+    var svg = d3.select('#secondary-graph-ctnr')
+        .classed({counts: false, polarization: true});
+
+    var margin = { left: 50, right: 30, top: 30, bottom: 60 };
+    var width = 800 - margin.left - margin.right;
+    var height = 400 - margin.top - margin.bottom;
+
+    var chart = new dimple.chart(svg, data);
     chart.setBounds(margin.left, margin.top, width, height);
     chart.addCategoryAxis('x', 'year');
     chart.addMeasureAxis('y', 'polarization');
@@ -340,10 +397,10 @@ function render_polarization (data) {
     chart.draw();
 }
 
-function show_polarization () {
+function show_secondary () {
     d3.select('#secondary-graph-ctnr').style('display', 'block');
 }
-function hide_polarization () {
+function hide_secondary () {
     d3.select('#secondary-graph-ctnr').style('display', 'none');
 }
 
