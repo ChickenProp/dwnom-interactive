@@ -310,11 +310,11 @@ function render (data_) {
     draw_aggregate('D');
     draw_aggregate('R');
 
-    render_polarization(data_year);
-
     d3.select('#show-polarization').on('click', function () {
-        show_polarization()
+        show_polarization();
+        render_polarization(data_year);
         d3.event.stopPropagation();
+        d3.event.preventDefault();
     });
     d3.select('html').on('click', function () {
         var ctnr = d3.select('#secondary-graph-ctnr').node();
@@ -328,34 +328,16 @@ function render (data_) {
 }
 
 function render_polarization (data) {
-    var margin = { left: 75, right: 30, top: 50, bottom: 30 };
+    var margin = { left: 50, right: 30, top: 30, bottom: 60 };
     var width = 800 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
-    var svg = d3.select('#secondary-graph-ctnr')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-        .attr('transform', sprintf('translate(%d, %d)',
-                                   margin.left, margin.top));
-
-    var scale_x = d3.scale.linear()
-        .range([0, width])
-        .domain(d3.extent(data, rcps('year')));
-    var scale_y = d3.scale.linear()
-        .range([height, 0])
-        .domain([0, d3.max(data, rcps('polarization'))]);
-
-    var axes = svg.append('g').attr('class', 'axes');
-    add_axes(axes, scale_x, scale_y);
-
-    var line = d3.svg.line()
-        .x(rcps('year', scale_x))
-        .y(rcps('polarization', scale_y));
-    svg.append('path')
-        .attr({ d: line(data),
-                fill: 'none',
-                stroke: 'black' });
+    var chart = new dimple.chart(d3.select('#secondary-graph-ctnr'), data);
+    chart.setBounds(margin.left, margin.top, width, height);
+    chart.addCategoryAxis('x', 'year');
+    chart.addMeasureAxis('y', 'polarization');
+    chart.addSeries(null, dimple.plot.line);
+    chart.draw();
 }
 
 function show_polarization () {
