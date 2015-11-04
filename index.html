@@ -31,8 +31,10 @@
       #year-highlights rect { pointer-events: all; cursor: pointer; }
       #year-highlights rect:hover { fill: white; }
 
+      #notes-markers { pointer-events: none; }
+
       #infobox {
-        width: 100;
+        width: 100px;
         position: fixed;
         right: 10px;
         background-color: white;
@@ -40,6 +42,7 @@
         padding: 3px;
         display: none; /* gets changed when we fill it */
       }
+      #infobox p { width: 100%; }
       #infobox.fixed { border: 1px solid black; }
 
       #infobox h4 { margin-top: 3px; }
@@ -61,6 +64,7 @@
         position: fixed;
         margin: auto;
         left: 0; right: 0;
+        top: 30px;
         border: 1px solid black;
       }
 
@@ -87,6 +91,7 @@
         </dt>
         <dd id="polarization"></dd>
       </dl>
+      <p id="infobox-notes"></p>
     </div>
     <p>This graph is based on
       <a href="https://en.wikipedia.org/wiki/NOMINATE_%28scaling_method%29">DW-NOMINATE</a>

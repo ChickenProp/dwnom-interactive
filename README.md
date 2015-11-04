@@ -10,7 +10,7 @@ I added aggregated statistics, to make the trends visible, but there was still t
 
 Meanwhile, I also decided it would be useful to be able to see statistics about each individual congress. And once those statistics were available, I also wanted them to be available as distinct graphs, since they couldn't easily be seen on the main ones. So I added some secondary graphs that could be displayed hovering over the main graph.
 
-In response to feedback #3, I flipped the vertical orientation of the graph, agreeing that people were more likely to be interested in recent congresses than historical ones.
+In response to feedback #3, I flipped the vertical orientation of the graph, agreeing that people were more likely to be interested in recent congresses than historical ones. I also added some annotations noting significant periods and events.
 
 ### Feedback
 

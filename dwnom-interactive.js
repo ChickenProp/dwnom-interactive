@@ -52,6 +52,7 @@ var data;
 var data_icpsr;
 var data_year;
 var data_year_long;
+var notes;
 
 function restructure_data(data_) {
     data = data_;
@@ -178,6 +179,8 @@ function fill_infobox (d, force) {
     d3.select('#num-republicans').text(d.R.count);
     d3.select('#num-independents').text(d.I.count);
     d3.select('#polarization').text(d.polarization.toFixed(2));
+
+    d3.select('#infobox-notes').html(d.notes || '');
 }
 
 function render (data_) {
@@ -213,6 +216,7 @@ function render (data_) {
     main_graph.append('g').attr('id', 'progressions');
     main_graph.append('g').attr('id', 'points');
     main_graph.append('g').attr('id', 'aggregates');
+    main_graph.append('g').attr('id', 'notes-markers');
 
     var legend = svg.append('g')
         .attr('id', 'legend')
@@ -340,6 +344,24 @@ function render (data_) {
         unfix_infobox();
         d3.event.preventDefault();
     });
+
+    d3.json('notes.json', function(error, notes) {
+        render_notes(notes, data_year, scale_y);
+    });
+}
+
+function render_notes(notes_, data, scale_y) {
+    notes = notes_;
+
+    notes.map(function (note) {
+        data.key[ note.year ].notes = note.text;
+    });
+
+    d3.select('#notes-markers').selectAll('circle')
+        .data(notes)
+      .enter()
+       .append('circle')
+        .attr({ cx: 5, cy: rcps('year', scale_y), r: 3});
 }
 
 function secondary_click_handler(func, data, arg) {
