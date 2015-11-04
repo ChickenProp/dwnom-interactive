@@ -131,7 +131,7 @@ function restructure_data(data_) {
 }
 
 function congress_breaks(years_extent) {
-    return _.range(years_extent[0]-1, years_extent[1]+2, 2);
+    return _.range(years_extent[0], years_extent[1]+1, 2);
 }
 
 function add_axes (parent, scale_x, scale_y) {
@@ -199,10 +199,10 @@ function render (data_) {
         .range([0, width])
         .margin([5, 0])
         .domain(d3.extent(data, rcps('dim1')));
-    var scale_y = d3.scale.margin()
-        .range([0, height])
-        .margin([5, 0])
-        .domain(d3.extent(data, rcps('year')));
+    var year_extent = d3.extent(data, rcps('year'));
+    var scale_y = d3.scale.linear()
+        .range([height, 0])
+        .domain([year_extent[0]-1, year_extent[1]+1]);
 
     var axes = svg.append('g').attr('class', 'axes');
     add_axes(axes, scale_x, scale_y);
@@ -289,8 +289,8 @@ function render (data_) {
         .data(data_year)
       .enter()
        .append('rect')
-        .attr({ x: 0, y: function (d) { return scale_y(d.year - 1); },
-                width: width, height: scale_y(2) - scale_y(0),
+        .attr({ x: 0, y: function (d) { return scale_y(d.year + 1); },
+                width: width, height: scale_y(0) - scale_y(2),
                 'fill-opacity': 0.5, fill: 'none' })
         .on('mouseover', function (d) {
             highlight_year(d.year);
