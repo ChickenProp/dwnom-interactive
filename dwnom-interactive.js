@@ -29,12 +29,34 @@ function restructure_nest (nested) {
 }
 
 var parties = {
-    100: { name: 'Democrat' },
-    200: { name: 'Republican' },
-    default: { name: 'Other' }
+     100: "Democrat",
+     112: "Conservative",
+     114: "Readjuster",
+     117: "Readjuster Democrat",
+     200: "Republican",
+     203: "Unconditional Unionist",
+     206: "Unionist",
+     208: "Liberal Republican",
+     213: "Progressive Republican",
+     326: "National Greenbacker",
+     328: "Independent",
+     329: "Ind. Democrat",
+     331: "Ind. Republican",
+     340: "Populist",
+     347: "Prohibitionist",
+     354: "Silver Republican",
+     355: "Union",
+     356: "Union Labor",
+     370: "Progressive",
+     380: "Socialist",
+     402: "Liberal",
+     522: "American Labor",
+     537: "Farmer-Labor",
+    1060: "Silver",
+    1116: "Conservative Republican",
 };
 function getParty(id) {
-    return parties[id] || parties.default;
+    return parties[id];
 }
 
 var set_party_class = {
@@ -44,7 +66,7 @@ var set_party_class = {
 };
 
 function getTitle(d) {
-    return sprintf('%s - %s - %.2f', d.name, getParty(d.party).name, d.dim1);
+    return sprintf('%s - %s - %.2f', d.name, getParty(d.party), d.dim1);
 }
 
 // Make some variables global to help with debugging.
@@ -62,7 +84,7 @@ function restructure_data(data_) {
         .rollup(function (values) {
             function dim1s(name) {
                 return values.filter(function (v) {
-                    return getParty(v.party).name == name;
+                    return getParty(v.party) == name;
                 }).map(rcps('dim1')).sort(function (a, b) { return a-b; });
             }
             var D_dim1s = dim1s('Democrat');
@@ -143,6 +165,7 @@ function add_axes (parent, scale_x, scale_y) {
     var axis_y = d3.svg.axis()
         .scale(scale_y)
         .orient('left')
+        .tickValues(_.range(1870, 2011, 10))
         .tickFormat(d3.format(''));
 
     var axis_y2 = d3.svg.axis()

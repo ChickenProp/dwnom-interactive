@@ -24,3 +24,10 @@ In response to feedback #3, I flipped the vertical orientation of the graph, agr
 
 ### Resources
 
+The DW-NOMINATE data set itself is from <http://voteview.com/dwnomin.htm>.
+
+I drew much inspiration from an XKCD poster: <http://xkcd.com/1127/large/>.
+
+Many wikipedia pages were useful for research, and are linked from the visualization itself.
+
+The .min.js files are all libraries available on <http://cdnjs.com>.
