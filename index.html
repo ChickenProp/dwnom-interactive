@@ -34,7 +34,7 @@
       #notes-markers { pointer-events: none; }
 
       #infobox {
-        width: 100px;
+        width: 200px;
         position: fixed;
         right: 10px;
         background-color: white;
@@ -44,6 +44,13 @@
       }
       #infobox p { width: 100%; }
       #infobox.fixed { border: 1px solid black; }
+
+      dl { margin-left: 10px; }
+      dl dl { margin: 0px 0px 0px 10px; font-size: small; }
+      dt { display: inline-block; min-width: 150px; }
+      dl dl dt { min-width: 140px; }
+      dd { display: inline; margin-left: 3px; }
+      dd:after { content: ''; display: block; }
 
       #infobox h4 { margin-top: 3px; }
       #infobox-unfix {
@@ -79,17 +86,21 @@
       <a id="infobox-unfix" href="#">&times;</a>
       <h4 id="infobox-year"></h4>
       <dl>
+        <dt>
+          <a id="show-polarization" href="#">Polarization</a>
+          <span class="help" title="The difference between the mean republican and democrat scores.">?</span>
+        </dt>
+        <dd id="polarization"></dd>
         <dt><a id="show-count-dem" href="#">Democrats</a></dt>
         <dd id="num-democrats"></dd>
         <dt><a id="show-count-rep" href="#">Republicans</a></dt>
         <dd id="num-republicans"></dd>
         <dt><a id="show-count-ind" href="#">Independents</a></dt>
         <dd id="num-independents"></dd>
-        <dt>
-          <a id="show-polarization" href="#">Polarization</a>
-          <span class="help" title="The difference between the mean republican and democrat scores.">?</span>
-        </dt>
-        <dd id="polarization"></dd>
+        <dd>
+          <dl id="independents-breakdown">
+          </dl>
+        </dd>
       </dl>
       <p id="infobox-notes"></p>
     </div>

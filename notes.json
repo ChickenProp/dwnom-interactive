@@ -1,5 +1,5 @@
 [ { "year": 1992,
-    "text": "Bernie Sanders was the longest-serving independent in House history, from 1991 to 2007." },
+    "text": "<a href=\"https://en.wikipedia.org/wiki/Bernie_Sanders\">Bernie Sanders</a> was the longest-serving independent in House history, from 1991 to 2007." },
   { "year": 1978,
     "text": "Polarization has increased with every House since 1977." },
   { "year": 1968,
@@ -11,5 +11,7 @@
   { "year": 1920,
     "text": "The <a href=\"https://en.wikipedia.org/wiki/Interwar_period\">interwar period</a> saw a sharp drop in political polarization, through both the <a href=\"https://en.wikipedia.org/wiki/Roaring_Twenties\">roaring twenties</a> and the <a href=\"https://en.wikipedia.org/wiki/Great_Depression_in_the_United_States\">great depression</a>." },
   { "year": 1898,
-    "text": "In the elections of 1896, the <a href=\"https://en.wikipedia.org/wiki/Third_Party_System\">Third Party System</a> gave way to the <a href=\"https://en.wikipedia.org/wiki/Fourth_Party_System\">Fourth Party System</a>." }
+    "text": "In the elections of 1896, the <a href=\"https://en.wikipedia.org/wiki/Third_Party_System\">Third Party System</a> gave way to the <a href=\"https://en.wikipedia.org/wiki/Fourth_Party_System\">Fourth Party System</a>." },
+  { "year": 1892,
+    "text": "From 1891-1903, the <a href=\"https://en.wikipedia.org/wiki/People%27s_Party_(United_States)\">Populist Party</a> held a total of 61 House seats. No other independent party has held as many seats since the civil war." }
 ]

@@ -39,9 +39,9 @@ var parties = {
      208: "Liberal Republican",
      213: "Progressive Republican",
      326: "National Greenbacker",
-     328: "Independent",
-     329: "Ind. Democrat",
-     331: "Ind. Republican",
+     328: "Non-affiliated",
+     329: "Non-affiliated (D aligned)",
+     331: "Non-affiliated (R aligned)",
      340: "Populist",
      347: "Prohibitionist",
      354: "Silver Republican",
@@ -91,6 +91,13 @@ function restructure_data(data_) {
             var R_dim1s = dim1s('Republican');
             var I_count = values.length - D_dim1s.length - R_dim1s.length;
 
+            var I_breakdown = d3.nest()
+                .key(rcps('party'))
+                .rollup(function (vs) { return vs.length; })
+                .entries(values)
+                .filter(function (v) { return v.key != 100 && v.key != 200; })
+                .sort(function (a, b) { return b.values - a.values; });
+
             function aggs(vals) {
                 return { mean: d3.mean(vals),
                          count: vals.length,
@@ -106,7 +113,7 @@ function restructure_data(data_) {
             return { year: values[0].year,
                      R: aggs(R_dim1s),
                      D: aggs(D_dim1s),
-                     I: { count: I_count },
+                     I: { count: I_count, breakdown: I_breakdown },
                      all: { mean: d3.mean(values, rcps('dim1')),
                             count: values.length },
                      polarization: R_aggs.mean - D_aggs.mean,
@@ -202,6 +209,12 @@ function fill_infobox (d, force) {
     d3.select('#num-republicans').text(d.R.count);
     d3.select('#num-independents').text(d.I.count);
     d3.select('#polarization').text(d.polarization.toFixed(2));
+
+    var ib = d3.select('#independents-breakdown').html('');
+    d.I.breakdown.map(function (p) {
+        ib.append('dt').text(getParty(p.key));
+        ib.append('dd').text(p.values);
+    });
 
     d3.select('#infobox-notes').html(d.notes || '');
 }

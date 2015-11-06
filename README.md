@@ -12,6 +12,8 @@ Meanwhile, I also decided it would be useful to be able to see statistics about 
 
 In response to feedback #3, I flipped the vertical orientation of the graph, agreeing that people were more likely to be interested in recent congresses than historical ones. I also added some annotations noting significant periods and events.
 
+To provide more detail about independents, I broke them down into their individual parties, and provided counts for each of them.
+
 ### Feedback
 
 1. The green of the independents is a bit hard to see against the grey background. It’s also hard to intentionally get the right cursor position to trigger the illumination of individual representatives.
