@@ -12,7 +12,9 @@ Meanwhile, I also decided it would be useful to be able to see statistics about 
 
 In response to feedback #3, I flipped the vertical orientation of the graph, agreeing that people were more likely to be interested in recent congresses than historical ones. I also added some annotations noting significant periods and events.
 
-To provide more detail about independents, I broke them down into their individual parties, and provided counts for each of them.
+To provide more detail about independents, I broke them down into their individual parties, and provided statistics and highlighting for each of them.
+
+I made the green slightly darker to make it easier to see, and also made highlights more obvious.
 
 ### Feedback
 
