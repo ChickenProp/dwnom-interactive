@@ -271,9 +271,9 @@ function render (data_) {
     var main_graph = svg.append('g').attr('id', 'main-graph');
     main_graph.append('g').attr('id', 'background');
     main_graph.append('g').attr('id', 'year-highlights');
+    main_graph.append('g').attr('id', 'aggregates');
     main_graph.append('g').attr('id', 'progressions');
     main_graph.append('g').attr('id', 'points');
-    main_graph.append('g').attr('id', 'aggregates');
     main_graph.append('g').attr('id', 'notes-markers');
 
     var legend = svg.append('g')
@@ -323,9 +323,11 @@ function render (data_) {
     main_graph.select('#progressions').selectAll('g.progression')
         .data(data_icpsr.filter(rcps('ever_independent_and_progress')))
       .enter()
-        .append('g')
+       .append('g')
         .attr('class', rcps('icpsr_class'))
         .classed('progression', true)
+        .on('mouseover', function (d) { highlight_icpsr(d.icpsr); })
+        .on('mouseout', function (d) { highlight_icpsr(false); })
         .each(function (d) {
             d3.select(this)
                 .selectAll('path')
@@ -345,6 +347,8 @@ function render (data_) {
         .attr({ cx: rcps('dim1', scale_x),
                 cy: rcps('year_jitter', scale_y),
                 r: 2 })
+        .on('mouseover', function (d) { highlight_icpsr(d.icpsr); })
+        .on('mouseout', function (d) { highlight_icpsr(false); })
        .append('title').text(getTitle);
 
     main_graph.select('#year-highlights').selectAll('rect')
@@ -505,6 +509,15 @@ function hide_secondary () {
     d3.select('#secondary-graph-ctnr').style('display', 'none');
 }
 
+function highlight_icpsr (icpsr) {
+    d3.selectAll('.highlight').classed('highlight', false);
+
+    if (!icpsr)
+        return;
+
+    d3.selectAll('.icpsr-' + icpsr).classed('highlight', true);
+}
+
 function highlight_year(year) {
     d3.selectAll('.highlight').classed('highlight', false);
 
@@ -518,12 +531,16 @@ function highlight_year(year) {
 }
 
 function highlight_party (party) {
-    d3.selectAll('.highlight-p').classed('highlight-p', false);
+    d3.selectAll('.highlight-p')
+        .classed('highlight-p', false)
+        .attr('r', 2);
 
     if (!party)
         return;
 
-    d3.selectAll('.party-' + party).classed('highlight-p', true);
+    d3.selectAll('.party-' + party)
+        .classed('highlight-p', true)
+        .attr('r', 3);
 }
 
 function transform (row) {

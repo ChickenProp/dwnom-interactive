@@ -20,14 +20,12 @@
       g.progression path.rep { stroke: #FF9090; }
       g.progression path.ind { stroke: #80FF80; }
 
-      #points circle { stroke: white; stroke-width: 0; }
-      #points circle.dem { fill: #00F; }
-      #points circle.rep { fill: #F00; }
-      #points circle.ind { fill: #0C0; }
-      #points circle.dem.highlight { fill: #88F; }
-      #points circle.rep.highlight { fill: #F88; }
-      #points circle.ind.highlight { fill: #6C6; }
-      #points circle.highlight-p { fill: #fff; stroke: #fff; stroke-width: 2; }
+      #points circle { stroke-width: 0; }
+      #points circle.dem { fill: #00F; stroke: #00F; }
+      #points circle.rep { fill: #F00; stroke: #F00; }
+      #points circle.ind { fill: #0C0; stroke: #0C0; }
+      #points circle.highlight { stroke-width: 2; }
+      #points circle.highlight-p { fill: #fff; stroke: #000; stroke-width: 1; }
 
       #year-highlights rect { pointer-events: all; cursor: pointer; }
       #year-highlights rect:hover { fill: white; }
