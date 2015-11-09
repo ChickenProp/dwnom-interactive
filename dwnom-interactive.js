@@ -74,6 +74,7 @@ var data;
 var data_icpsr;
 var data_year;
 var data_year_long;
+var data_party;
 var notes;
 
 function restructure_data(data_) {
@@ -158,6 +159,16 @@ function restructure_data(data_) {
     data.map(function (d) {
         d.ever_independent = data_icpsr.key[d.icpsr].ever_independent;
     });
+
+    data_party = d3.nest()
+        .key(rcps('party'))
+        .rollup(function (values) {
+            return { name: getParty(values[0].party),
+                     extent: d3.extent(values, rcps('year')),
+                     seats: values.length };
+        })
+        .entries(data);
+    restructure_nest(data_party);
 }
 
 function congress_breaks(years_extent) {
@@ -212,7 +223,13 @@ function fill_infobox (d, force) {
 
     var ib = d3.select('#independents-breakdown').html('');
     d.I.breakdown.map(function (p) {
-        ib.append('dt').text(getParty(p.key));
+        var party = data_party.key[p.key];
+        ib.append('dt').append('span')
+            .classed('party', true)
+            .attr('title', sprintf('%d - %d: %d seats',
+                                   party.extent[0]-1, party.extent[1]+1,
+                                   party.seats))
+            .text(party.name);
         ib.append('dd').text(p.values);
     });
 
