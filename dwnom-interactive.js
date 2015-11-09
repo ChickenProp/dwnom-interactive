@@ -59,11 +59,14 @@ function getParty(id) {
     return parties[id];
 }
 
-var set_party_class = {
+var set_party_classes = {
     dem: function (d) { return (d[0]||d).party == 100; },
     rep: function (d) { return (d[0]||d).party == 200; },
     ind: function (d) { var p = (d[0]||d).party; return p != 100 && p != 200; }
 };
+Object.keys(parties).map(function (p) {
+    set_party_classes['party-'+p] = function(d){ return (d[0]||d).party == p; };
+});
 
 function getTitle(d) {
     return sprintf('%s - %s - %.2f', d.name, getParty(d.party), d.dim1);
@@ -229,7 +232,9 @@ function fill_infobox (d, force) {
             .attr('title', sprintf('%d - %d: %d seats',
                                    party.extent[0]-1, party.extent[1]+1,
                                    party.seats))
-            .text(party.name);
+            .text(party.name)
+            .on('mouseover', function () { highlight_party(p.key); })
+            .on('mouseout', function () { highlight_party(false); });
         ib.append('dd').text(p.values);
     });
 
@@ -327,7 +332,7 @@ function render (data_) {
                 .data(d.progressions)
               .enter()
                .append('path')
-                .classed(set_party_class)
+                .classed(set_party_classes)
                 .attr('d', line);
         });
 
@@ -336,7 +341,7 @@ function render (data_) {
       .enter()
        .append('circle')
         .attr('class', rcps('icpsr_class'))
-        .classed(set_party_class)
+        .classed(set_party_classes)
         .attr({ cx: rcps('dim1', scale_x),
                 cy: rcps('year_jitter', scale_y),
                 r: 2 })
@@ -510,6 +515,15 @@ function highlight_year(year) {
     classes.map(function (c) {
         d3.selectAll('.' + c).classed('highlight', true);
     });
+}
+
+function highlight_party (party) {
+    d3.selectAll('.highlight-p').classed('highlight-p', false);
+
+    if (!party)
+        return;
+
+    d3.selectAll('.party-' + party).classed('highlight-p', true);
 }
 
 function transform (row) {
