@@ -1,12 +1,19 @@
 <html charset="utf-8">
   <head>
-    <title>Political Polarization in the US House of Representatives</title>
+    <title>Political Polarization in the U.S. House of Representatives</title>
     <style>
       p { width: 600px; }
-      #main-graph-ctnr { background-color: #eee; }
+      #main-graph-ctnr { background-color: #eee; margin-top: 15px; }
       #secondary-graph-ctnr { background-color: #fff; }
       .axes line, .axes path { stroke: #000; fill: none; }
       .axes .axis-inner line { stroke: #fff; }
+
+      #title { text-anchor: middle; font-size: x-large; }
+      .axes .label { text-anchor: middle; }
+
+      #legend text { dominant-baseline: middle; font-size: 13; }
+      #legend .dem { fill: #00f; fill-opacity: 0.3; }
+      #legend .rep { fill: #f00; fill-opacity: 0.3; }
 
       g.progression path {
         fill: none;

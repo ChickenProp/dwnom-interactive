@@ -191,8 +191,10 @@ function congress_breaks(years_extent) {
 
 // Add axes to the SVG.
 function add_axes (parent, scale_x, scale_y) {
+    var x_dom = scale_x.domain();
     var axis_x = d3.svg.axis()
         .scale(scale_x)
+        .tickValues(_.range(x_dom[0], x_dom[1] + 0.01, 0.2))
         .orient('top');
 
     var axis_y = d3.svg.axis()
@@ -211,6 +213,20 @@ function add_axes (parent, scale_x, scale_y) {
     parent.append('g').attr('class', 'axis-inner').call(axis_y2);
     parent.append('g').attr('class', 'axis').call(axis_y);
     parent.append('g').attr('class', 'axis').call(axis_x);
+
+    var x_range = scale_x.range();
+    parent.append('text')
+        .classed('label', true)
+        .attr('transform',
+              sprintf('translate(%f, %f)', (x_range[1]-x_range[0])/2, -30))
+        .text('DW-NOMINATE score');
+
+    var y_range = scale_y.range();
+    parent.append('text')
+        .classed('label', true)
+        .attr('transform', sprintf('translate(%f, %f) rotate(-90)',
+                                   -50, (y_range[0]-y_range[1])/2))
+        .text('Year');
 }
 
 // When the infobox is unfixed, it changes with the user's mouse movements. When
@@ -263,21 +279,20 @@ function render (data_) {
     restructure_data(data_); // defines global vars data, data_*
 
     // Construct the SVG element, scales, etc.
-    var margin = { left: 75, right: 30, top: 50, bottom: 30 };
-    var width = 1200 - margin.left - margin.right;
+    var margin = { left: 75, right: 30, top: 100, bottom: 30 };
+    var width = 1100 - margin.left - margin.right;
     var height = 1200 - margin.top - margin.bottom;
 
     var svg = d3.select('#main-graph-ctnr')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-      .append('g') // transform on svg doesn't work in chrome?
+      .append('g') // In chrome, can't transform() SVG directly
         .attr('transform', sprintf('translate(%d, %d)',
                                    margin.left, margin.top));
 
-    var scale_x = d3.scale.margin()
+    var scale_x = d3.scale.linear()
         .range([0, width])
-        .margin([5, 0])
-        .domain(d3.extent(data, rcps('dim1')));
+        .domain([-1.2, 1.2]);
     var year_extent = d3.extent(data, rcps('year'));
     var scale_y = d3.scale.linear()
         .range([height, 0])
@@ -295,9 +310,16 @@ function render (data_) {
     main_graph.append('g').attr('id', 'points');
     main_graph.append('g').attr('id', 'notes-markers');
 
+    svg.append('text')
+        .attr('id', 'title')
+        .attr('transform', sprintf('translate(%f, %f)',
+                                   width/2, -margin.top + 23))
+        .text('Political Polarization in the U.S. House of Representatives');
+
     var legend = svg.append('g')
         .attr('id', 'legend')
-        .attr('transform', 'translate(' + (width-10) + ', 10)');
+        .attr('transform', sprintf('translate(%f, %f)',
+                                   width - 120, -margin.top + 3));
     add_legend(legend);
 
     // line and area are functions used to draw shapes, when applied to data in
