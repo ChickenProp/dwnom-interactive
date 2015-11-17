@@ -59,6 +59,9 @@ function getParty(id) {
     return parties[id];
 }
 
+// .classed() accepts a hash of functions. When we give it this hash, it assigns
+// one of the classes dem/rep/ind, as well as the class party-n, corresponding
+// to a data point's .party val.
 var set_party_classes = {
     dem: function (d) { return (d[0]||d).party == 100; },
     rep: function (d) { return (d[0]||d).party == 200; },
@@ -68,18 +71,21 @@ Object.keys(parties).map(function (p) {
     set_party_classes['party-'+p] = function(d){ return (d[0]||d).party == p; };
 });
 
+// The hover title that shows up when you mouse over a point.
 function getTitle(d) {
     return sprintf('%s - %s - %.2f', d.name, getParty(d.party), d.dim1);
 }
 
 // Make some variables global to help with debugging.
-var data;
-var data_icpsr;
-var data_year;
-var data_year_long;
-var data_party;
-var notes;
+var data; // original data
+var data_icpsr; // data about members, keyed by ICPSR (i.e. unique id)
+var data_year; // aggregate data grouped by year
+var data_year_long; // three entries per year, one each for rep/dem/ind
+var data_party; // aggregate data grouped by political party
+var notes; // separate data set, notes to display in relation to specific years
 
+// Take the original data from the TSV, and construct the various different
+// views onto it that we'll need in other places.
 function restructure_data(data_) {
     data = data_;
 
@@ -148,6 +154,10 @@ function restructure_data(data_) {
                 if (party != 100 && party != 200)
                     ret.ever_independent = true;
 
+                // ret.progressions is an array [[y0, y1], [y1, y2], ...]. The
+                // ys represent adjacent years in the member's career. So each
+                // pair represents their career progression from one congress to
+                // the next that they were elected in.
                 if (i)
                     ret.progressions.push([ values[i-1], values[i] ]);
             }
@@ -174,10 +184,12 @@ function restructure_data(data_) {
     restructure_nest(data_party);
 }
 
+// List of years to put the white congress break markers on the y axis.
 function congress_breaks(years_extent) {
     return _.range(years_extent[0], years_extent[1]+1, 2);
 }
 
+// Add axes to the SVG.
 function add_axes (parent, scale_x, scale_y) {
     var axis_x = d3.svg.axis()
         .scale(scale_x)
@@ -201,6 +213,8 @@ function add_axes (parent, scale_x, scale_y) {
     parent.append('g').attr('class', 'axis').call(axis_x);
 }
 
+// When the infobox is unfixed, it changes with the user's mouse movements. When
+// it's fixed, it only changes when the user clicks.
 var infobox_fixed = false;
 function fix_infobox () {
     infobox_fixed = true;
@@ -211,6 +225,8 @@ function unfix_infobox () {
     d3.select('#infobox').classed('fixed', false);
 }
 
+// Place information about a data point in the infobox. If the infobox is fixed,
+// this does nothing unless force is true.
 function fill_infobox (d, force) {
     if (infobox_fixed && !force)
         return;
@@ -242,9 +258,11 @@ function fill_infobox (d, force) {
 }
 
 function render (data_) {
+    // DW-NOMINATE scores can't be compared between pre- and post- civil war.
     data_ = data_.filter(function (d) { return d.year >= 1866; });
     restructure_data(data_); // defines global vars data, data_*
 
+    // Construct the SVG element, scales, etc.
     var margin = { left: 75, right: 30, top: 50, bottom: 30 };
     var width = 1200 - margin.left - margin.right;
     var height = 1200 - margin.top - margin.bottom;
@@ -268,6 +286,7 @@ function render (data_) {
     var axes = svg.append('g').attr('class', 'axes');
     add_axes(axes, scale_x, scale_y);
 
+    // Create layers to add data to.
     var main_graph = svg.append('g').attr('id', 'main-graph');
     main_graph.append('g').attr('id', 'background');
     main_graph.append('g').attr('id', 'year-highlights');
@@ -281,6 +300,9 @@ function render (data_) {
         .attr('transform', 'translate(' + (width-10) + ', 10)');
     add_legend(legend);
 
+    // line and area are functions used to draw shapes, when applied to data in
+    // the correct format. They return values suitable for the d attribute of a
+    // path element.
     var line = d3.svg.line()
         .x(rcps('dim1', scale_x))
         .y(rcps('year_jitter', scale_y))
@@ -292,6 +314,7 @@ function render (data_) {
         .x1(rcps(2, scale_x))
         .defined(function (d) { return !isNaN(+d[0] + d[1] + d[2]); });
 
+    // Draw the democrat and republican percentile ribbons.
     main_graph.select('#background').append('path')
         .attr('fill', 'blue')
         .attr('fill-opacity', 0.3)
@@ -320,6 +343,10 @@ function render (data_) {
             return [ d.year, d.R.p05, d.R.p95 ];
         })));
 
+    // For representatives who served at least two terms, of which at least one
+    // was as an independent, draw lines plotting their career progress. Every
+    // line segment is a separate element, because they might need to be
+    // different colors.
     main_graph.select('#progressions').selectAll('g.progression')
         .data(data_icpsr.filter(rcps('ever_independent_and_progress')))
       .enter()
@@ -338,6 +365,8 @@ function render (data_) {
                 .attr('d', line);
         });
 
+    // For representatives who ever served as an independent, draw circles for
+    // each year they were elected.
     main_graph.select('#points').selectAll('circle')
         .data(data.filter(rcps('ever_independent')))
       .enter()
@@ -351,6 +380,8 @@ function render (data_) {
         .on('mouseout', function (d) { highlight_icpsr(false); })
        .append('title').text(getTitle);
 
+    // Draw rects to highlight years when hovered over. CSS makes them invisible
+    // by default, and transparent white when hovered.
     main_graph.select('#year-highlights').selectAll('rect')
         .data(data_year)
       .enter()
@@ -370,6 +401,7 @@ function render (data_) {
             fix_infobox();
         });
 
+    // Draw the party means and House mean DW-NOMINATE score.
     function draw_aggregate(party) {
         var g = main_graph.select('#aggregates').append('g');
         g.append('path')
@@ -385,6 +417,7 @@ function render (data_) {
     draw_aggregate('D');
     draw_aggregate('R');
 
+    // Add event handlers for showing and hiding the secondary graph.
     d3.select('#show-polarization')
         .on('click', secondary_click_handler(render_polarization, data_year));
     d3.select('#show-count-ind')
@@ -407,11 +440,14 @@ function render (data_) {
         d3.event.preventDefault();
     });
 
+    // Get notes data and render it.
     d3.json('notes.json', function(error, notes) {
         render_notes(notes, data_year, scale_y);
     });
 }
 
+// Whenever we have a note, draw a black mark on the graph and edit the year
+// data to include the note text.
 function render_notes(notes_, data, scale_y) {
     notes = notes_;
 
@@ -426,6 +462,8 @@ function render_notes(notes_, data, scale_y) {
         .attr({ cx: 5, cy: rcps('year', scale_y), r: 3});
 }
 
+// Return an event handler to show the secondary graph, and render it using the
+// provided function.
 function secondary_click_handler(func, data, arg) {
     return function () {
         show_secondary();
@@ -436,6 +474,9 @@ function secondary_click_handler(func, data, arg) {
     }
 }
 
+// Render an area graph of counts of members by affiliation. order should have
+// the characters R, D and I in some permutation, to specify the stacking order
+// bottom-to-top.
 function render_counts (data, order) {
     var svg = d3.select('#secondary-graph-ctnr')
         .classed({counts: true, polarization: false});
@@ -482,6 +523,7 @@ function render_counts (data, order) {
     });
 }
 
+// Render a line graph of polarization year-on-year.
 function render_polarization (data) {
     var svg = d3.select('#secondary-graph-ctnr')
         .classed({counts: false, polarization: true});
@@ -502,6 +544,7 @@ function render_polarization (data) {
     chart.draw();
 }
 
+// Show/hide the secondary graph.
 function show_secondary () {
     d3.select('#secondary-graph-ctnr').style('display', 'block');
 }
@@ -509,6 +552,7 @@ function hide_secondary () {
     d3.select('#secondary-graph-ctnr').style('display', 'none');
 }
 
+// Highlight a specific member's career progression, according to their ICPSR.
 function highlight_icpsr (icpsr) {
     d3.selectAll('.highlight').classed('highlight', false);
 
@@ -518,6 +562,7 @@ function highlight_icpsr (icpsr) {
     d3.selectAll('.icpsr-' + icpsr).classed('highlight', true);
 }
 
+// Highlight the career progression of every member who served in a given year.
 function highlight_year(year) {
     d3.selectAll('.highlight').classed('highlight', false);
 
@@ -530,6 +575,11 @@ function highlight_year(year) {
     });
 }
 
+// Highlight the members who served in a specific party (not just
+// "independent"), only in the years they were actually affiliated with that
+// party. The other highlight_ functions don't need to touch radius, because
+// they're implemented with CSS (by adding a stroke the same color as the fill).
+// This highlight can't be done in CSS.
 function highlight_party (party) {
     d3.selectAll('.highlight-p')
         .classed('highlight-p', false)
@@ -543,6 +593,7 @@ function highlight_party (party) {
         .attr('r', 3);
 }
 
+// Appropriately format rows from the raw TSV data.
 function transform (row) {
     row.dim1 = +row.dim1;
     row.year = +row.year;
