@@ -16,6 +16,8 @@ To provide more detail about independents, I broke them down into their individu
 
 I made the green slightly darker to make it easier to see, and also made highlights more obvious.
 
+Following comments on the first version I submitted, I improved the exposition above the graph, added axis labels and a title, and rearranged the legend.
+
 ### Feedback
 
 1. The green of the independents is a bit hard to see against the grey background. It’s also hard to intentionally get the right cursor position to trigger the illumination of individual representatives.
@@ -35,3 +37,11 @@ I drew much inspiration from an XKCD poster: <http://xkcd.com/1127/large/>.
 Many wikipedia pages were useful for research, and are linked from the visualization itself.
 
 The .min.js files are all libraries available on <http://cdnjs.com>.
+
+### Previous versions
+
+The feedback that I acquired was based on the following git commits:
+
+* [4852d05](http://bl.ocks.org/ChickenProp/raw/9dd807b7a14f7b797421/4852d05b4c9fb38ef89515390c8d72252bba2fe6/) (feedback 1)
+* [bfd1560](http://bl.ocks.org/ChickenProp/raw/9dd807b7a14f7b797421/bfd156061de3cf2cc94124abceb61bcfe16fc96a/) (feedback 2-4)
+* [1d040a6](http://bl.ocks.org/ChickenProp/raw/9dd807b7a14f7b797421/1d040a6e16bc2d83fb603f804e46d8622cd98ccd/) (first submitted version)
