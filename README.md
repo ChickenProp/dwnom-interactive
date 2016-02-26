@@ -1,3 +1,5 @@
+If you intend to fork this, please note that it contains my Google Analytics tracking code.
+
 ### Summary
 
 This is a visualization of political polarization in the US House of Representatives, as calculated by [DW-NOMINATE](https://en.wikipedia.org/wiki/NOMINATE_\(scaling_method\)). DW-NOMINATE allows one to calculate the political leaning of a member simply by comparing their voting record to others', ignoring their party affiliation and even the content of the bills they vote on.
