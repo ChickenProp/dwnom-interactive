@@ -1,3 +1,5 @@
+[Available online.](http://bl.ocks.org/ChickenProp/raw/9dd807b7a14f7b797421/) I wrote this for a Udacity project; below is the design report that they asked for.
+
 If you intend to fork this, please note that it contains my Google Analytics tracking code.
 
 ### Summary
